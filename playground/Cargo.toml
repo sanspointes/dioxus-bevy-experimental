@@ -1,0 +1,9 @@
+[package]
+name = "playground"
+version = "0.0.0"
+edition = "2021"
+
+[dependencies]
+bevy = "0.14.2"
+dioxus = { version = "0.5.6", default-features = false, features = ["macro", "signals", "hooks"] }
+dioxus-rsx = { default-features = false, version = "0.5.6" }

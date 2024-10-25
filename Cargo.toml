@@ -1,0 +1,7 @@
+[workspace]
+resolver = "2"
+members = [
+    "macro-core",
+    "macro",
+    "playground",
+]

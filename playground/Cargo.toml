@@ -4,6 +4,9 @@ version = "0.0.0"
 edition = "2021"
 
 [dependencies]
-bevy = "0.14.2"
+bevy = "0.14"
 dioxus = { version = "0.5.6", default-features = false, features = ["macro", "signals", "hooks"] }
-dioxus-rsx = { default-features = false, version = "0.5.6" }
+dioxus-rsx = { default-features = false, version = "0.5.6", features = ["hot_reload"] }
+
+[dev-dependencies]
+bevy-inspector-egui = "0.27.0"

@@ -25,12 +25,15 @@ pub fn root() -> Element {
     println!("Spawning root node");
 
     let state = use_bevy_resource::<State>();
+    let transform = Transform::default().with_scale(Vec3::new(0.5, 2., 1.));
 
     rsx! {
         node {
-            transform: C(Transform::default().with_scale(Vec3::new(0.5, 2., 1.))),
+            transform: C(transform),
+            visibility: OC::<Visibility>(None),
             node {
                 position_x: state.pressed_count as f64,
+                visibility: OC(Some(Visibility::Visible)),
             }
         }
     }

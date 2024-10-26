@@ -1,8 +1,7 @@
 use core::panic;
-use std::{any::Any, boxed};
 
 use bevy::{
-    ecs::{entity::EntityHashMap, system::SystemState, world::Command}, log::warn, prelude::{BuildWorldChildren, Children, Component, DespawnRecursive, Entity, GlobalTransform, HierarchyQueryExt, Parent, Query, Transform, World}, ptr::OwningPtr, utils::HashMap
+    ecs::{entity::EntityHashMap, system::SystemState, world::Command}, log::warn, prelude::{BuildWorldChildren, Children, Component, DespawnRecursive, Entity, GlobalTransform, HierarchyQueryExt, Parent, Query, Transform, Visibility, World}, ptr::OwningPtr, utils::HashMap
 };
 use dioxus::{dioxus_core::{AttributeValue, ElementId, WriteMutations}, prelude::{Template, TemplateAttribute, TemplateNode}};
 
@@ -56,14 +55,40 @@ impl<'a> MutationApplier<'a> {
         DespawnRecursive { entity }.apply(self.world);
     }
 
-    pub fn apply_any_component<T: bevy::prelude::Component + Clone>(&mut self, entity: Entity, any: &dyn Any) {
-        let Some(component) = any.downcast_ref::<T>() else {
-            warn!("apply_any_component: Tried to downcast into but the provided any pointer wasn't of this type.");
-            return;
-        };
-        let mut entity_mut = self.world.entity_mut(entity);
-        entity_mut.insert(component.clone());
+    pub fn apply_required_component<T: bevy::prelude::Component + Clone + Default>(&mut self, entity: Entity, value: &AttributeValue) {
+        match value {
+            AttributeValue::Any(boxed_any) => {
+                let Some(component) = boxed_any.as_any().downcast_ref::<T>() else {
+                    warn!("apply_any_component: Tried to downcast into but the provided any pointer wasn't of this type.");
+                    return;
+                };
+                let mut entity_mut = self.world.entity_mut(entity);
+                entity_mut.insert(component.clone());
+            },
+            AttributeValue::None => {
+                let mut entity_mut = self.world.entity_mut(entity);
+                entity_mut.insert(T::default());
+            },
+            other => warn!("Incorrect value passed to 'transform' attribute. Expected 'Transform' but found {other:?}."),
+        }
+    }
 
+    pub fn apply_optional_component<T: bevy::prelude::Component + Clone + Default>(&mut self, entity: Entity, value: &AttributeValue) {
+        match value {
+            AttributeValue::Any(boxed_any) => {
+                let Some(component) = boxed_any.as_any().downcast_ref::<T>() else {
+                    warn!("apply_any_component: Tried to downcast into but the provided any pointer wasn't of this type.");
+                    return;
+                };
+                let mut entity_mut = self.world.entity_mut(entity);
+                entity_mut.insert(component.clone());
+            },
+            AttributeValue::None => {
+                let mut entity_mut = self.world.entity_mut(entity);
+                entity_mut.remove::<T>();
+            },
+            other => warn!("Incorrect value passed to 'transform' attribute. Expected 'Transform' but found {other:?}."),
+        }
     }
 }
 
@@ -217,13 +242,8 @@ impl<'a> WriteMutations for MutationApplier<'a> {
                     other => warn!("Incorrect value passed to 'position_x' attribute. Expected 'f64' but found {other:?}."),
                 }
             },
-            "transform" => {
-                match value {
-                    AttributeValue::Any(boxed_any) => self.apply_any_component::<Transform>(entity, boxed_any.as_any()),
-                    AttributeValue::None => todo!("Handle removing attribute."),
-                    other => warn!("Incorrect value passed to 'transform' attribute. Expected 'Transform' but found {other:?}."),
-                }
-            }
+            "transform" => self.apply_required_component::<Transform>(entity, value),
+            "visibility" => self.apply_optional_component::<Visibility>(entity, value),
             other => {
                 let stringified_namespace = ns.unwrap_or("dioxus_bevy");
                 warn!("{stringified_namespace}: Received unknown attribute {other:?} with value {value:?}");

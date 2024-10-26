@@ -8,6 +8,12 @@ pub struct PropDefinition {
     pub applier_fn: ExprClosure,
 }
 
+impl PropDefinition {
+    pub fn internal_ident(&self) -> Ident {
+        Ident::new(format!("attr_{}", self.ident).as_str(), self.ident.span())
+    }
+}
+
 impl Parse for PropDefinition {
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
         let content;

@@ -1,5 +1,5 @@
-mod prop_definition;
-mod element_definition;
+pub(crate) mod prop_definition;
+pub(crate) mod element_definition;
 
 use std::collections::HashMap;
 
@@ -10,8 +10,8 @@ use syn::{parse::Parse, Ident, Token};
 #[allow(dead_code)]
 #[derive(Debug, Default)]
 pub struct Model {
-    props: HashMap<String, PropDefinition>,
-    elements: HashMap<String, ElementDefinition>,
+    pub props: HashMap<String, PropDefinition>,
+    pub elements: HashMap<String, ElementDefinition>,
 }
 
 impl Parse for Model {

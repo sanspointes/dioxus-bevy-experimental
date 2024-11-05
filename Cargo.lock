@@ -1739,11 +1739,22 @@ dependencies = [
 ]
 
 [[package]]
-name = "dioxus-bevy-macro"
+name = "dioxus-bevy-core"
 version = "0.0.0"
+dependencies = [
+ "bevy",
+ "bevy-inspector-egui",
+ "bevy_app",
+ "bevy_derive",
+ "bevy_ecs",
+ "bevy_hierarchy",
+ "bevy_utils",
+ "dioxus",
+ "dioxus-rsx",
+]
 
 [[package]]
-name = "dioxus-bevy-macro-core"
+name = "dioxus-bevy-macro2"
 version = "0.0.0"
 dependencies = [
  "bevy",

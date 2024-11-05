@@ -1,7 +1,7 @@
 [workspace]
 resolver = "2"
 members = [
-    "macro-core",
-    "macro",
+    "core",
+    "macro2",
     "playground",
 ]

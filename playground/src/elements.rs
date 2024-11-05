@@ -1,6 +1,16 @@
 use bevy::prelude::Component;
 use dioxus::{dioxus_core::AttributeValue, prelude::IntoAttributeValue};
 
+use crate::mutations::MutationApplier;
+
+pub struct BevyMutationHelper<'a> {
+    mutation_applier: &'a MutationApplier,
+}
+
+impl BevyMutationHelper {
+    pub fn 
+}
+
 
 #[allow(non_camel_case_types, non_upper_case_globals)]
 pub mod dioxus_bevy_attributes {

@@ -1,7 +1,8 @@
 [workspace]
 resolver = "2"
 members = [
-    "core",
-    "macro2",
-    "playground",
+    "dioxus-bevy",
+    "dioxus-bevy-core", 
+    "dioxus-bevy-macro",
+    "examples/*",
 ]

@@ -314,6 +314,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "72b3254f16251a8381aa12e40e3c4d2f0199f8c6508fbecb9d91f575e0fbb8c6"
 
 [[package]]
+name = "basic"
+version = "0.1.0"
+dependencies = [
+ "bevy",
+ "bevy-inspector-egui",
+ "dioxus-bevy",
+ "dioxus-rsx",
+]
+
+[[package]]
 name = "bevy"
 version = "0.14.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1739,6 +1749,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "dioxus-bevy"
+version = "0.1.0"
+dependencies = [
+ "dioxus-bevy-core",
+ "dioxus-bevy-macro",
+]
+
+[[package]]
 name = "dioxus-bevy-core"
 version = "0.0.0"
 dependencies = [
@@ -1754,10 +1772,9 @@ dependencies = [
 ]
 
 [[package]]
-name = "dioxus-bevy-macro2"
+name = "dioxus-bevy-macro"
 version = "0.0.0"
 dependencies = [
- "bevy",
  "proc-macro2",
  "quote",
  "syn 2.0.85",
@@ -3401,16 +3418,6 @@ name = "pkg-config"
 version = "0.3.31"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "953ec861398dccce10c670dfeaf3ec4911ca479e9c02154b3a215178c5f566f2"
-
-[[package]]
-name = "playground"
-version = "0.0.0"
-dependencies = [
- "bevy",
- "bevy-inspector-egui",
- "dioxus",
- "dioxus-rsx",
-]
 
 [[package]]
 name = "png"

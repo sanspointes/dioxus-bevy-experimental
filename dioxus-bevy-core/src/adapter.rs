@@ -1,4 +1,4 @@
-use std::any::Any;
+use std::{any::Any, fmt::Debug};
 
 use bevy_ecs::{
     entity::Entity,
@@ -7,10 +7,10 @@ use bevy_ecs::{
 use dioxus::{dioxus_core::AttributeValue, prelude::{IntoAttributeValue, TemplateNode}};
 
 /// Intermediary format from Dioxus's [Template] that can be spawned into the world.
-pub trait DioxusBevyTemplateNode: Send + Sync + Clone + 'static {
+pub trait DioxusBevyTemplateNode: Send + Debug + Sync + Clone + 'static {
     fn from_dioxus(node: &TemplateNode) -> Self;
     fn spawn(&self, world: &mut World) -> Entity;
-    fn apply_attribute(entity_mut: EntityWorldMut, name: &'static str, value: &AttributeValue);
+    fn apply_attribute(world: &mut World, entity: Entity, name: &'static str, value: &AttributeValue);
 }
 
 #[allow(dead_code)]
@@ -105,5 +105,7 @@ impl<T: Any + PartialEq> IntoAttributeValue for WA<T> {
 
 /// Implement this trait on a #\[define_element\] struct to spawn it.
 pub trait DioxusBevyElement {
-    fn spawn(world: &mut World) -> EntityWorldMut;
+    fn on_spawn(_world: &mut World, _entity: Entity) {
+
+    }
 }

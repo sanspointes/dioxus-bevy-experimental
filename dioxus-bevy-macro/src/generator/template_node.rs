@@ -3,7 +3,10 @@ use std::collections::HashSet;
 use proc_macro2::TokenStream;
 use quote::quote;
 
-use crate::parser::{element_definition::ElementAttribute, Model};
+use crate::parser::{
+    element_definition::{ElementAttribute, ElementComponent},
+    Model,
+};
 
 /// Generates the template node enum
 ///
@@ -17,13 +20,13 @@ pub fn generate_template_node(model: &Model) -> TokenStream {
             let ident = &el_def.ident;
             quote! { #ident {
                 children: Box<[Self]>,
-            }}
+            },}
         })
         .collect();
 
     quote! {
         #[allow(non_camel_case_types)]
-        #[derive(Clone, PartialEq)]
+        #[derive(Debug, Clone, PartialEq)]
         pub enum DioxusBevyAdapter {
             #variants
         }
@@ -82,6 +85,20 @@ fn implement_spawn(model: &Model) -> TokenStream {
         .map(|el_def| {
             let element_ident = &el_def.ident;
 
+            let insert_components: TokenStream = if !el_def.components.is_empty() {
+                let component_defaults: TokenStream = el_def
+                    .components
+                    .iter()
+                    .map(|component_ident| {
+                        let ElementComponent { component_type, .. } = component_ident;
+                        quote! { #component_type::default(), }
+                    })
+                    .collect();
+                quote! { entity_mut.insert((#component_defaults)); }
+            } else {
+                TokenStream::new()
+            };
+
             quote! {
                 Self::#element_ident { children } => {
                     let children = children
@@ -90,7 +107,12 @@ fn implement_spawn(model: &Model) -> TokenStream {
                         .collect::<Box<[_]>>();
 
                     use dioxus_bevy::DioxusBevyElement;
-                    dioxus_elements::#element_ident::spawn(world).push_children(&children).id()
+                    let mut entity_mut = world.spawn_empty();
+                    #insert_components
+                    entity_mut.push_children(&children);
+                    let entity = entity_mut.id();
+                    dioxus_elements::#element_ident::on_spawn(world, entity);
+                    entity
                 }
             }
         })
@@ -115,19 +137,52 @@ fn implement_apply_attribute(model: &Model) -> TokenStream {
     let attribute_matches: TokenStream = all_attributes
         .into_iter()
         .map(|el_attribute| {
-            let ElementAttribute { field_ident, handler_ident } = el_attribute;
-            quote! { stringify!(#field_ident) => #handler_ident(entity_mut, value), }
+            let ElementAttribute {
+                field_ident,
+                handler_ident,
+            } = el_attribute;
+            quote! { stringify!(#field_ident) => #handler_ident(world, entity, value), }
+        })
+        .collect();
+
+    let all_components: HashSet<&ElementComponent> = model
+        .dioxus_elements_module
+        .element_definitions
+        .iter()
+        .flat_map(|el_def| &el_def.components)
+        .collect();
+    let component_matches: TokenStream = all_components
+        .into_iter()
+        .map(|el_attribute| {
+            let ElementComponent {
+                field_ident,
+                component_type,
+            } = el_attribute;
+            quote! { stringify!(#field_ident) => {
+                let value = value
+                    .as_concrete::<#component_type>()
+                    .unwrap_or_else(|| panic!("dioxus_bevy: While applying component attr '{}', couldn't downcast to type '{}'.", stringify!(#field_ident), stringify!(#component_type)))
+                    .clone();
+                let mut entity_mut = world.entity_mut(entity);
+                let mut current_value = entity_mut
+                    .get_mut::<#component_type>()
+                    .unwrap_or_else(|| panic!("dioxus_bevy: While applying component attr '{}', couldn't get component '{}' on entity '{entity:?}' to mutate.", stringify!(#field_ident), stringify!(#component_type)));
+                *current_value = value;
+            } }
         })
         .collect();
 
     quote! {
         fn apply_attribute(
-            mut entity_mut: EntityWorldMut,
+            world: &mut World,
+            entity: Entity,
             name: &'static str,
             value: &dioxus_core::AttributeValue,
         ) {
+            println!("Applying attribute {name} with {value:?}.");
             match name {
                 #attribute_matches
+                #component_matches
 
                 unknown => core::panic!("dioxus_bevy: Unexpected attribute '{unknown}'."),
             }

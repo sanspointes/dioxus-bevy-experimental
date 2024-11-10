@@ -10,6 +10,11 @@ pub fn generate_dioxus_elements(model: &Model) -> TokenStream {
             quote! { pub const #field_ident: AttributeDescription = (stringify!(#field_ident), None, false); }
         }).collect();
 
+        let component_attributes: TokenStream = el_defininition.components.iter().map(|el_component| {
+            let field_ident = &el_component.field_ident;
+            quote! { pub const #field_ident: AttributeDescription = (stringify!(#field_ident), None, false); }
+        }).collect();
+
         let el_ident = &el_defininition.ident;
         quote! {
             #[allow(non_camel_case_types)]
@@ -19,6 +24,7 @@ pub fn generate_dioxus_elements(model: &Model) -> TokenStream {
                 pub const TAG_NAME: &'static str = stringify!(#el_ident);
                 pub const NAME_SPACE: Option<&'static str> = NAME_SPACE;
                 #element_attributes
+                #component_attributes
             }
         }
     }).collect();

@@ -207,27 +207,8 @@ impl<'a, TT: DioxusBevyTemplateNode> WriteMutations for MutationApplier<'a, TT> 
         id: ElementId,
     ) {
         let entity = self.el_to_entity[&id];
-        let entity_mut = self.world.entity_mut(entity);
 
-        println!("Setting attribute '{name}' to '{value:?}");
-
-        TT::apply_attribute(entity_mut, name, value);
-        // match name {
-        //     "position_x" => {
-        //         match value {
-        //             AttributeValue::Float(value) =>
-        //                     dioxus_bevy_attributes::position_x(entity_mut, *value),
-        //             AttributeValue::None => todo!("Handle removing attribute."),
-        //             other => warn!("Incorrect value passed to 'position_x' attribute. Expected 'f64' but found {other:?}."),
-        //         }
-        //     },
-        //     "transform" => self.apply_required_component::<Transform>(entity, value),
-        //     "visibility" => self.apply_optional_component::<Visibility>(entity, value),
-        //     other => {
-        //         let stringified_namespace = ns.unwrap_or("dioxus_bevy");
-        //         warn!("{stringified_namespace}: Received unknown attribute {other:?} with value {value:?}");
-        //     },
-        // }
+        TT::apply_attribute(self.world, entity, name, value);
     }
 
     fn set_node_text(&mut self, value: &str, id: ElementId) {
@@ -264,6 +245,7 @@ impl<'a, TT: DioxusBevyTemplateNode> WriteMutations for MutationApplier<'a, TT> 
     }
 }
 
+#[derive(Debug)]
 pub struct BevyTemplate<TT: DioxusBevyTemplateNode> {
     roots: Box<[TT]>,
 }

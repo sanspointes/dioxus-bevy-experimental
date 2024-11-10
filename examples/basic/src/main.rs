@@ -22,30 +22,54 @@ mod my_adapter {
     use dioxus_core::AttributeValue;
 
     #[define_attr]
-    pub fn position(mut entity_mut: EntityWorldMut, value: &AttributeValue) {
+    pub fn position(world: &mut World, entity: Entity, value: &AttributeValue) {
+        let mut entity_mut = world.entity_mut(entity);
         entity_mut.get_mut::<Transform>().unwrap().translation =
             value.as_concrete::<Vec3>().copied().unwrap_or_default()
     }
     #[define_attr]
-    pub fn position_x(mut entity_mut: EntityWorldMut, value: &AttributeValue) {
+    pub fn position_x(world: &mut World, entity: Entity, value: &AttributeValue) {
+        let mut entity_mut = world.entity_mut(entity);
         entity_mut.get_mut::<Transform>().unwrap().translation.x = value.as_f32().unwrap_or(0.)
     }
     #[define_attr]
-    pub fn position_y(mut entity_mut: EntityWorldMut, value: &AttributeValue) {
+    pub fn position_y(world: &mut World, entity: Entity, value: &AttributeValue) {
+        let mut entity_mut = world.entity_mut(entity);
         entity_mut.get_mut::<Transform>().unwrap().translation.y = value.as_f32().unwrap_or(0.)
     }
     #[define_attr]
-    pub fn position_z(mut entity_mut: EntityWorldMut, value: &AttributeValue) {
+    pub fn position_z(world: &mut World, entity: Entity, value: &AttributeValue) {
+        let mut entity_mut = world.entity_mut(entity);
         entity_mut.get_mut::<Transform>().unwrap().translation.z = value.as_f32().unwrap_or(0.)
     }
-    // #[define_attr]
-    // pub fn mesh_handle(mut entity_mut: EntityWorldMut, value: &AttributeValue) {
-    //     entity_mut.get_mut::<Transform>().unwrap().translation.x = value.as_f32().unwrap_or(0.)
-    // }
+
+    #[define_attr]
+    pub fn mesh_handle(world: &mut World, entity: Entity, value: &AttributeValue) {
+        let mut entity_mut = world.entity_mut(entity);
+        if let Some(mesh_handle) = value.as_concrete::<Handle<Mesh>>() {
+            entity_mut.insert(mesh_handle.clone());
+        } else {
+            entity_mut.remove::<Handle<Mesh>>();
+        }
+    }
+
 
     pub mod dioxus_elements {
+        use dioxus_bevy::DioxusBevyElement;
+
         #[define_element]
         struct spatial {
+            #[component]
+            transform: Transform,
+            #[component]
+            global_transform: GlobalTransform,
+            #[component]
+            visibility: Visibility,
+            #[component]
+            inherited_visibility: InheritedVisibility,
+            #[component]
+            view_visibility: ViewVisibility,
+
             #[attr]
             position: position,
             #[attr]
@@ -55,20 +79,34 @@ mod my_adapter {
             #[attr]
             position_z: position_z,
         }
-    }
+        impl DioxusBevyElement for spatial {}
 
+        #[define_element]
+        struct mesh {
+            #[component]
+            transform: Transform,
+            #[component]
+            global_transform: GlobalTransform,
+            #[component]
+            visibility: Visibility,
+            #[component]
+            inherited_visibility: InheritedVisibility,
+            #[component]
+            view_visibility: ViewVisibility,
 
-    impl DioxusBevyElement for dioxus_elements::spatial {
-        fn spawn(world: &mut World) -> EntityWorldMut {
-            world
-                .spawn((
-                    Transform::default(),
-                    GlobalTransform::default(),
-                    Visibility::default(),
-                    InheritedVisibility::default(),
-                    ViewVisibility::default(),
-                ))
+            #[attr]
+            mesh_handle: mesh_handle,
+
+            #[attr]
+            position: position,
+            #[attr]
+            position_x: position_x,
+            #[attr]
+            position_y: position_y,
+            #[attr]
+            position_z: position_z,
         }
+        impl DioxusBevyElement for mesh {}
     }
 }
 
@@ -100,6 +138,7 @@ pub fn root() -> Element {
             position_x: state.pressed_count as f64,
             position_y: 1.0,
             position_z: 0.5,
+            visibility: WA(if state.pressed_count % 2 == 0 { Visibility::Visible } else { Visibility::Hidden }),
             spatial {
                 position: WA(Vec3::new(state.pressed_count as f32, 0., 0.)),
             }

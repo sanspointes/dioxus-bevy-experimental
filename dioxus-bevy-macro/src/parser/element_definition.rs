@@ -30,21 +30,45 @@ impl TryFrom<&Field> for ElementAttribute {
     }
 }
 
+#[derive(Debug, PartialEq, Eq, Hash)]
+pub struct ElementComponent {
+    pub field_ident: Ident,
+    pub component_type: Type,
+}
+
+impl TryFrom<&Field> for ElementComponent {
+    type Error = syn::Error;
+    fn try_from(value: &Field) -> Result<Self, Self::Error> {
+        let field_ident = value.ident.clone().ok_or_else(|| syn::Error::new(value.span(), "Found field without an identifier.  This is usually caused by tuple structs, please convert to a normal struct."))?;
+        Ok(Self {
+            field_ident,
+            component_type: value.ty.clone(),
+        })
+    }
+}
+
 #[derive(Debug)]
 pub struct ElementDefinition {
     pub ident: Ident,
     pub attributes: Vec<ElementAttribute>,
+    pub components: Vec<ElementComponent>,
 }
 
-const UNEXPECTED_FIELD_ERROR_MESSAGE: &str = r#"Unexpected field.  Currently only attribute fields are supported, i.e.:
+const UNEXPECTED_FIELD_ERROR_MESSAGE: &str = r#"Unexpected field.  Currently only #[attr] and #[component] fields are supported, i.e.:
 #[define_attr]
 fn position_x_attr(mut entity_mut: EntityWorldMut, value: AttributeValue) {
     entity_mut.get::<Transform>().unwrap().translation.x = value.as_f32().unwrap_or(0.);
 }
 
+#[derive(Component, PartialEq)]
+pub struct MyComp(1)
+
 pub mod dioxus_elements {
     #[define_element]
     struct my_element {
+        #[component]
+        my_comp: MyComp,
+
         #[attr]
         position_x: position_x_attr,
     }
@@ -60,6 +84,7 @@ impl TryFrom<&ItemStruct> for ElementDefinition {
         let mut element_definition = ElementDefinition {
             ident: value.ident.clone(),
             attributes: vec![],
+            components: vec![],
         };
 
         for field in value.fields.iter() {
@@ -67,6 +92,14 @@ impl TryFrom<&ItemStruct> for ElementDefinition {
                 element_definition
                     .attributes
                     .push(ElementAttribute::try_from(field)?);
+            } else if field
+                .attrs
+                .iter()
+                .any(|attr| attr.path().is_ident("component"))
+            {
+                element_definition
+                    .components
+                    .push(ElementComponent::try_from(field)?);
             } else {
                 return Err(syn::Error::new(
                     field.span(),

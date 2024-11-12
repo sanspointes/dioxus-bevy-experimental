@@ -21,6 +21,15 @@ mod my_adapter {
     use dioxus_bevy::*;
     use dioxus_core::AttributeValue;
 
+    use bevy::{
+        core_pipeline::tonemapping::{DebandDither, Tonemapping},
+        render::{
+            camera::{CameraMainTextureUsages, CameraRenderGraph, Exposure},
+            primitives::Frustum,
+            view::{ColorGrading, VisibleEntities},
+        },
+    };
+
     #[define_attr]
     pub fn position(world: &mut World, entity: Entity, value: &AttributeValue) {
         let mut entity_mut = world.entity_mut(entity);
@@ -53,8 +62,30 @@ mod my_adapter {
         }
     }
 
+    #[define_attr]
+    pub fn color(world: &mut World, entity: Entity, value: &AttributeValue) {
+        world.resource_scope::<Assets<StandardMaterial>, ()>(|world, mut color_materials| {
+            if let Some(handle) = world
+                .entity_mut(entity)
+                .get::<Handle<StandardMaterial>>()
+                .cloned()
+            {
+                color_materials.remove(&handle);
+            }
+
+            let value = *value.as_concrete::<Color>().unwrap_or_else(|| {
+                panic!("dioxus_bevy: 'color' attribute error unwrapping 'Color'.  Found {value:?}.")
+            });
+            let handle = color_materials.add(value);
+            world.entity_mut(entity).insert(handle);
+        });
+    }
 
     pub mod dioxus_elements {
+        use bevy::{
+            core_pipeline::{core_3d::graph::Core3d, tonemapping::DebandDither},
+            render::camera::CameraRenderGraph,
+        };
         use dioxus_bevy::DioxusBevyElement;
 
         #[define_element]
@@ -82,7 +113,7 @@ mod my_adapter {
         impl DioxusBevyElement for spatial {}
 
         #[define_element]
-        struct mesh {
+        struct colormesh {
             #[component]
             transform: Transform,
             #[component]
@@ -95,9 +126,6 @@ mod my_adapter {
             view_visibility: ViewVisibility,
 
             #[attr]
-            mesh_handle: mesh_handle,
-
-            #[attr]
             position: position,
             #[attr]
             position_x: position_x,
@@ -105,8 +133,46 @@ mod my_adapter {
             position_y: position_y,
             #[attr]
             position_z: position_z,
+
+            #[attr]
+            mesh_handle: mesh_handle,
+
+            #[attr]
+            color: color,
         }
-        impl DioxusBevyElement for mesh {}
+        impl DioxusBevyElement for colormesh {}
+
+        #[define_element]
+        struct perspectivecamera {
+            #[component]
+            transform: Transform,
+            #[component]
+            global_transform: GlobalTransform,
+
+            #[component]
+            pub camera: Camera,
+            #[component]
+            pub projection: Projection,
+            #[component]
+            pub visible_entities: VisibleEntities,
+            #[component]
+            pub frustum: Frustum,
+            #[component]
+            pub camera_3d: Camera3d,
+            #[component]
+            pub tonemapping: Tonemapping,
+            #[component]
+            pub color_grading: ColorGrading,
+            #[component]
+            pub exposure: Exposure,
+            #[component]
+            pub main_texture_usages: CameraMainTextureUsages,
+        }
+        impl DioxusBevyElement for perspectivecamera {
+            fn spawn(world: &mut bevy::ecs::world::World) -> bevy::prelude::EntityWorldMut<'_> {
+                world.spawn((CameraRenderGraph::new(Core3d), DebandDither::Enabled))
+            }
+        }
     }
 }
 
@@ -131,16 +197,31 @@ pub fn main() {
 pub fn root() -> Element {
     println!("Re-rendering root node");
 
-    let state = DBHooks::<my_adapter::DioxusBevyAdapter>::use_bevy_resource::<State>();
+    let state = Hooks::use_bevy_resource::<State>();
+
+    let mesh = Hooks::use_world_memo(|world| {
+        let mut meshes = world.resource_mut::<Assets<Mesh>>();
+        meshes.add(Mesh::from(Sphere::new(10.)))
+    });
 
     rsx! {
+        perspectivecamera {
+
+        }
+
         spatial {
             position_x: state.pressed_count as f64,
             position_y: 1.0,
             position_z: 0.5,
             visibility: WA(if state.pressed_count % 2 == 0 { Visibility::Visible } else { Visibility::Hidden }),
-            spatial {
-                position: WA(Vec3::new(state.pressed_count as f32, 0., 0.)),
+
+            for i in 0..16 {
+                colormesh {
+                    position_x: f64::from(i).sin(),
+                    position_z: f64::from(i).cos(),
+                    color: WA(Color::srgb(1., 0., 0.)),
+                    mesh_handle: WA(mesh),
+                }
             }
         }
     }

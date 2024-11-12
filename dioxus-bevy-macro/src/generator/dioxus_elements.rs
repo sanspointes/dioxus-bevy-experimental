@@ -38,12 +38,12 @@ pub fn generate_dioxus_elements(model: &Model) -> TokenStream {
 
     quote! {
         pub mod dioxus_elements {
+            #pass_through_items
+
             pub type AttributeDescription = (&'static str, Option<&'static str>, bool);
             const NAME_SPACE: Option<&'static str> = Some("dioxus_bevy");
 
             #elements
-
-            #pass_through_items
         }
     }
 }

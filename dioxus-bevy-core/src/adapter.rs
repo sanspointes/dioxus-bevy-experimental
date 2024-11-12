@@ -105,7 +105,7 @@ impl<T: Any + PartialEq> IntoAttributeValue for WA<T> {
 
 /// Implement this trait on a #\[define_element\] struct to spawn it.
 pub trait DioxusBevyElement {
-    fn on_spawn(_world: &mut World, _entity: Entity) {
-
+    fn spawn(world: &mut World) -> EntityWorldMut {
+        world.spawn_empty()
     }
 }

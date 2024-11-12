@@ -1,5 +1,4 @@
 pub(crate) mod element_definition;
-pub(crate) mod pre_attribute;
 
 use element_definition::DioxusElementsModule;
 use std::collections::HashMap;

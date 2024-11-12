@@ -1,7 +1,8 @@
 use std::collections::HashSet;
 
 use proc_macro2::TokenStream;
-use quote::quote;
+use quote::{quote, ToTokens};
+use syn::{PathArguments, Type};
 
 use crate::parser::{
     element_definition::{ElementAttribute, ElementComponent},
@@ -30,6 +31,8 @@ pub fn generate_template_node(model: &Model) -> TokenStream {
         pub enum DioxusBevyAdapter {
             #variants
         }
+
+        pub type Hooks = DBHooks<DioxusBevyAdapter>;
     }
 }
 
@@ -91,7 +94,28 @@ fn implement_spawn(model: &Model) -> TokenStream {
                     .iter()
                     .map(|component_ident| {
                         let ElementComponent { component_type, .. } = component_ident;
-                        quote! { #component_type::default(), }
+
+                        println!("implement_spawn: {component_type:?}");
+
+                        let last_segment = component_type.path.segments.last().unwrap();
+                        // The identifier for the type, like `Handle`
+                        let ident = &last_segment.ident;
+
+                        // Check if there are any generic arguments, like `<Mesh>`
+                        let ufc_generic_args = if let PathArguments::AngleBracketed(args) = &last_segment.arguments {
+                            let args = &args.args;
+                            quote! {::<#args>}
+                        } else {
+                            TokenStream::new()
+                        };
+
+                        let mut joined = ident.to_token_stream();
+                        joined.extend(ufc_generic_args);
+
+                        // Generate the final UFC syntax, e.g., `Handle::<Mesh>`
+                        quote! {
+                            #joined::default(),
+                        }
                     })
                     .collect();
                 quote! { entity_mut.insert((#component_defaults)); }
@@ -107,11 +131,11 @@ fn implement_spawn(model: &Model) -> TokenStream {
                         .collect::<Box<[_]>>();
 
                     use dioxus_bevy::DioxusBevyElement;
-                    let mut entity_mut = world.spawn_empty();
+                    let mut entity_mut = dioxus_elements::#element_ident::spawn(world);
                     #insert_components
                     entity_mut.push_children(&children);
                     let entity = entity_mut.id();
-                    dioxus_elements::#element_ident::on_spawn(world, entity);
+                    ;
                     entity
                 }
             }

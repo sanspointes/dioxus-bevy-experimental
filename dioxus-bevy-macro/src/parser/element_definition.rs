@@ -1,4 +1,4 @@
-use syn::{spanned::Spanned, Field, Ident, Item, ItemMod, ItemStruct, Type};
+use syn::{spanned::Spanned, Field, Ident, Item, ItemMod, ItemStruct, Type, TypePath};
 
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub struct ElementAttribute {
@@ -9,10 +9,7 @@ pub struct ElementAttribute {
 impl TryFrom<&Field> for ElementAttribute {
     type Error = syn::Error;
     fn try_from(value: &Field) -> Result<Self, Self::Error> {
-        println!("ElementAttribute::try_from::<Field> {value:#?}");
-
         let field_ident = value.ident.clone().ok_or_else(|| syn::Error::new(value.span(), "Found field without an identifier.  This is usually caused by tuple structs, please convert to a normal struct."))?;
-
         match &value.ty {
             Type::Path(type_path) => {
                 let handler_ident = type_path.path.get_ident().ok_or_else(||
@@ -33,17 +30,24 @@ impl TryFrom<&Field> for ElementAttribute {
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub struct ElementComponent {
     pub field_ident: Ident,
-    pub component_type: Type,
+    pub component_type: TypePath,
 }
 
 impl TryFrom<&Field> for ElementComponent {
     type Error = syn::Error;
     fn try_from(value: &Field) -> Result<Self, Self::Error> {
-        let field_ident = value.ident.clone().ok_or_else(|| syn::Error::new(value.span(), "Found field without an identifier.  This is usually caused by tuple structs, please convert to a normal struct."))?;
-        Ok(Self {
-            field_ident,
-            component_type: value.ty.clone(),
-        })
+        let field_ident = value.ident
+            .clone()
+            .ok_or_else(|| syn::Error::new(value.span(), "Found field without an identifier.  This is usually caused by tuple structs, please convert to a normal struct."))?;
+        match &value.ty {
+            Type::Path(type_path) => {
+                Ok(Self {
+                    field_ident,
+                    component_type: type_path.clone(),
+                })
+            },
+            other => Err(syn::Error::new(other.span(), "Expected a type path such as 'Transform' or 'Handle<Mesh>'."))
+        }
     }
 }
 
@@ -79,7 +83,6 @@ impl TryFrom<&ItemStruct> for ElementDefinition {
     type Error = syn::Error;
 
     fn try_from(value: &ItemStruct) -> syn::Result<Self> {
-        println!("ElementDefinition::new() -> value: {value:#?}");
 
         let mut element_definition = ElementDefinition {
             ident: value.ident.clone(),

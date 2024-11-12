@@ -7,8 +7,7 @@ use bevy_ecs::{
 };
 use bevy_utils::{HashMap, HashSet};
 use dioxus::{
-    dioxus_core::{use_hook, ScopeId},
-    prelude::{consume_context, current_scope_id, use_drop},
+    dioxus_core::{use_hook, ScopeId}, hooks::use_memo, prelude::{consume_context, current_scope_id, use_drop}, signals::Memo
 };
 use std::{any::TypeId, marker::PhantomData};
 
@@ -144,5 +143,16 @@ where
 {
     pub fn query(&mut self) -> Query<Q, F> {
         self.system_state.get(self.world_ref)
+    }
+}
+
+impl<TT: DioxusBevyTemplateNode> DBHooks<TT> {
+    pub fn use_world_memo<TResult: PartialEq>(mut memo_fn: impl FnMut(&mut World) -> TResult + 'static) -> Memo<TResult>
+    {
+        let value = use_memo(move || {
+            let world = EcsContext::<TT>::get_world();
+            memo_fn(world)
+        });
+        value 
     }
 }

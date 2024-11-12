@@ -22,9 +22,9 @@ mod my_adapter {
     use dioxus_core::AttributeValue;
 
     use bevy::{
-        core_pipeline::tonemapping::{DebandDither, Tonemapping},
+        core_pipeline::tonemapping::Tonemapping,
         render::{
-            camera::{CameraMainTextureUsages, CameraRenderGraph, Exposure},
+            camera::{CameraMainTextureUsages, Exposure},
             primitives::Frustum,
             view::{ColorGrading, VisibleEntities},
         },
@@ -56,6 +56,7 @@ mod my_adapter {
     pub fn mesh_handle(world: &mut World, entity: Entity, value: &AttributeValue) {
         let mut entity_mut = world.entity_mut(entity);
         if let Some(mesh_handle) = value.as_concrete::<Handle<Mesh>>() {
+            println!("Setting mesh to {mesh_handle:?}");
             entity_mut.insert(mesh_handle.clone());
         } else {
             entity_mut.remove::<Handle<Mesh>>();
@@ -167,6 +168,15 @@ mod my_adapter {
             pub exposure: Exposure,
             #[component]
             pub main_texture_usages: CameraMainTextureUsages,
+
+            #[attr]
+            position: position,
+            #[attr]
+            position_x: position_x,
+            #[attr]
+            position_y: position_y,
+            #[attr]
+            position_z: position_z,
         }
         impl DioxusBevyElement for perspectivecamera {
             fn spawn(world: &mut bevy::ecs::world::World) -> bevy::prelude::EntityWorldMut<'_> {
@@ -201,16 +211,16 @@ pub fn root() -> Element {
 
     let mesh = Hooks::use_world_memo(|world| {
         let mut meshes = world.resource_mut::<Assets<Mesh>>();
-        meshes.add(Mesh::from(Sphere::new(10.)))
+        meshes.add(Mesh::from(Sphere::new(0.1)))
     });
 
     rsx! {
         perspectivecamera {
-
+            position_z: 12,
         }
 
         spatial {
-            position_x: state.pressed_count as f64,
+            position_x: (state.pressed_count as f64) * 0.01,
             position_y: 1.0,
             position_z: 0.5,
             visibility: WA(if state.pressed_count % 2 == 0 { Visibility::Visible } else { Visibility::Hidden }),
@@ -218,9 +228,10 @@ pub fn root() -> Element {
             for i in 0..16 {
                 colormesh {
                     position_x: f64::from(i).sin(),
+                    position_y: f64::from(i).cos(),
                     position_z: f64::from(i).cos(),
                     color: WA(Color::srgb(1., 0., 0.)),
-                    mesh_handle: WA(mesh),
+                    mesh_handle: WA(mesh.read().clone_weak()),
                 }
             }
         }
@@ -228,11 +239,7 @@ pub fn root() -> Element {
 }
 
 pub fn setup(mut commands: Commands) {
-    commands.spawn((
-        Transform::default(),
-        GlobalTransform::default(),
-        DioxusBevyRootComponent(root),
-    ));
+    commands.spawn((SpatialBundle::default(), DioxusBevyRootComponent(root)));
 }
 
 pub fn update(button_state: Res<ButtonInput<KeyCode>>, mut state: ResMut<State>) {

@@ -30,6 +30,8 @@ pub fn generate_template_node(model: &Model) -> TokenStream {
         #[derive(Debug, Clone, PartialEq)]
         pub enum DioxusBevyAdapter {
             #variants
+
+            Dynamic { id: usize },
         }
 
         pub type Hooks = DBHooks<DioxusBevyAdapter>;
@@ -62,6 +64,10 @@ fn implement_from_dioxus(model: &Model) -> TokenStream {
         fn from_dioxus(node: &dioxus_core::TemplateNode) -> Self {
             match node {
                 #defined_element_matches
+
+                dioxus_core::TemplateNode::Dynamic { id } => {
+                    Self::Dynamic { id: *id }
+                }
 
                 dioxus_core::TemplateNode::Element {
                     tag,
@@ -146,6 +152,13 @@ fn implement_spawn(model: &Model) -> TokenStream {
         fn spawn(&self, world: &mut World) -> Entity {
             match self {
                 #variant_matches
+
+                Self::Dynamic { id } => {
+                    world.spawn((
+                        Name::from("Dynamic"),
+                        SpatialBundle::default(),
+                    )).id()
+                }
             }
         }
     }

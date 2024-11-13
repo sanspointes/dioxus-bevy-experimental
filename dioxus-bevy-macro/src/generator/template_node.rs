@@ -2,7 +2,7 @@ use std::collections::HashSet;
 
 use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
-use syn::{PathArguments, Type};
+use syn::PathArguments;
 
 use crate::parser::{
     element_definition::{ElementAttribute, ElementComponent},
@@ -34,7 +34,7 @@ pub fn generate_template_node(model: &Model) -> TokenStream {
             Dynamic { id: usize },
         }
 
-        pub type Hooks = DBHooks<DioxusBevyAdapter>;
+        pub type Hooks = DioxusBevyHooks<DioxusBevyAdapter>;
     }
 }
 
@@ -108,12 +108,13 @@ fn implement_spawn(model: &Model) -> TokenStream {
                         let ident = &last_segment.ident;
 
                         // Check if there are any generic arguments, like `<Mesh>`
-                        let ufc_generic_args = if let PathArguments::AngleBracketed(args) = &last_segment.arguments {
-                            let args = &args.args;
-                            quote! {::<#args>}
-                        } else {
-                            TokenStream::new()
-                        };
+                        let ufc_generic_args =
+                            if let PathArguments::AngleBracketed(args) = &last_segment.arguments {
+                                let args = &args.args;
+                                quote! {::<#args>}
+                            } else {
+                                TokenStream::new()
+                            };
 
                         let mut joined = ident.to_token_stream();
                         joined.extend(ufc_generic_args);

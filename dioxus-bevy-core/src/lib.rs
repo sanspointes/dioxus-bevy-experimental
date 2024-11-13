@@ -30,7 +30,7 @@ pub struct DioxusBevyPlugin<TT: DioxusBevyTemplateNode> {
 impl<TT: DioxusBevyTemplateNode> Default for DioxusBevyPlugin<TT> {
     fn default() -> Self {
         Self {
-            template_pd: PhantomData
+            template_pd: PhantomData,
         }
     }
 }
@@ -43,7 +43,7 @@ impl<TT: DioxusBevyTemplateNode> Plugin for DioxusBevyPlugin<TT> {
     }
 }
 
-struct DioxusBevyContext<TT: DioxusBevyTemplateNode> {
+pub struct DioxusBevyContext<TT: DioxusBevyTemplateNode> {
     roots: HashMap<(Entity, DioxusBevyRootComponent), DioxusBevyRoot<TT>>,
     subscriptions: EcsSubscriptions,
 }
@@ -81,9 +81,9 @@ impl<TT: DioxusBevyTemplateNode> DioxusBevyRoot<TT> {
 }
 
 pub mod prelude {
-    pub use super::*;
+    pub use super::{DioxusBevyContext, DioxusBevyPlugin, DioxusBevyRoot, DioxusBevyRootComponent};
+    pub use crate::adapter::*;
+    pub use crate::ecs_hooks::*;
     pub use dioxus;
     pub use dioxus::prelude::{Event as DioxusEvent, *};
-    pub use ecs_hooks::*;
-    pub use adapter::*;
 }

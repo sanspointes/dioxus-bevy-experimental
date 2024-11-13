@@ -1,7 +1,11 @@
-use bevy_utils::HashMap;
 use bevy_ecs::prelude::{Entity, World};
+use bevy_utils::HashMap;
 
-use crate::{adapter::DioxusBevyTemplateNode, ecs_hooks::EcsContext, mutations::MutationApplier, prelude::DeferredSystemRunQueue, DioxusBevyContext, DioxusBevyRoot, DioxusBevyRootComponent};
+use crate::{
+    adapter::DioxusBevyTemplateNode, deferred_system::DeferredSystemRunQueue,
+    ecs_hooks::EcsContext, mutations::MutationApplier, DioxusBevyContext, DioxusBevyRoot,
+    DioxusBevyRootComponent,
+};
 
 pub fn tick_dioxus_ui<TT: DioxusBevyTemplateNode>(world: &mut World) {
     run_deferred_systems(world);
@@ -52,8 +56,13 @@ fn run_deferred_systems(world: &mut World) {
     }
 }
 
-fn schedule_ui_renders_from_ecs_subscriptions<TT: DioxusBevyTemplateNode>(ui_root: &mut DioxusBevyRoot<TT>, world: &World) {
-    let ecs_subscriptions = &world.non_send_resource::<DioxusBevyContext<TT>>().subscriptions;
+fn schedule_ui_renders_from_ecs_subscriptions<TT: DioxusBevyTemplateNode>(
+    ui_root: &mut DioxusBevyRoot<TT>,
+    world: &World,
+) {
+    let ecs_subscriptions = &world
+        .non_send_resource::<DioxusBevyContext<TT>>()
+        .subscriptions;
 
     for scope_id in &*ecs_subscriptions.world_and_queries {
         ui_root.virtual_dom.mark_dirty(*scope_id);
@@ -76,7 +85,11 @@ fn schedule_ui_renders_from_ecs_subscriptions<TT: DioxusBevyTemplateNode>(ui_roo
     }
 }
 
-fn render_ui<TT: DioxusBevyTemplateNode>(root_entity: Entity, ui_root: &mut DioxusBevyRoot<TT>, world: &mut World) {
+fn render_ui<TT: DioxusBevyTemplateNode>(
+    root_entity: Entity,
+    ui_root: &mut DioxusBevyRoot<TT>,
+    world: &mut World,
+) {
     ui_root
         .virtual_dom
         .provide_root_context(EcsContext::<TT>::new(world));
@@ -85,14 +98,14 @@ fn render_ui<TT: DioxusBevyTemplateNode>(root_entity: Entity, ui_root: &mut Diox
     crate::hot_reload::update_templates(world, &mut ui_root.virtual_dom);
 
     if ui_root.needs_rebuild {
-            let mut mutation_applier = MutationApplier::new(
-                &mut ui_root.el_to_entity,
-                &mut ui_root.entity_to_el,
-                &mut ui_root.templates,
-                root_entity,
-                world,
-            );
-            ui_root.virtual_dom.rebuild(&mut mutation_applier);
+        let mut mutation_applier = MutationApplier::new(
+            &mut ui_root.el_to_entity,
+            &mut ui_root.entity_to_el,
+            &mut ui_root.templates,
+            root_entity,
+            world,
+        );
+        ui_root.virtual_dom.rebuild(&mut mutation_applier);
         ui_root.needs_rebuild = false;
     }
 

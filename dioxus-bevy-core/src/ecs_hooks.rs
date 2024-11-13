@@ -7,7 +7,10 @@ use bevy_ecs::{
 };
 use bevy_utils::{HashMap, HashSet};
 use dioxus::{
-    dioxus_core::{use_hook, ScopeId}, hooks::use_memo, prelude::{consume_context, current_scope_id, use_drop}, signals::Memo
+    dioxus_core::{use_hook, ScopeId},
+    hooks::{use_callback, use_memo, UseCallback},
+    prelude::{consume_context, current_scope_id, use_drop},
+    signals::Memo,
 };
 use std::{any::TypeId, marker::PhantomData};
 
@@ -21,8 +24,8 @@ pub(crate) struct EcsSubscriptions {
 
 /// Struct that has static functions for hooks that use the correct adapter.
 ///
-/// * `pd`: 
-pub struct DBHooks<TT: DioxusBevyTemplateNode> {
+/// * `pd`:
+pub struct DioxusBevyHooks<TT: DioxusBevyTemplateNode> {
     pd: PhantomData<TT>,
 }
 
@@ -36,7 +39,7 @@ impl<TT: DioxusBevyTemplateNode> EcsContext<TT> {
     pub fn new(world: *mut World) -> Self {
         Self {
             world,
-            pd: PhantomData
+            pd: PhantomData,
         }
     }
 }
@@ -47,7 +50,7 @@ impl<TT: DioxusBevyTemplateNode> EcsContext<TT> {
     }
 }
 
-impl<TT: DioxusBevyTemplateNode> DBHooks<TT> {
+impl<TT: DioxusBevyTemplateNode> DioxusBevyHooks<TT> {
     pub fn use_world<'a>() -> &'a World {
         let world = EcsContext::<TT>::get_world();
 
@@ -96,7 +99,7 @@ impl<TT: DioxusBevyTemplateNode> DBHooks<TT> {
     }
 }
 
-impl<TT: DioxusBevyTemplateNode> DBHooks<TT> {
+impl<TT: DioxusBevyTemplateNode> DioxusBevyHooks<TT> {
     pub fn use_query<'a, Q>() -> UseQuery<'a, Q, ()>
     where
         Q: ReadOnlyQueryData,
@@ -146,13 +149,23 @@ where
     }
 }
 
-impl<TT: DioxusBevyTemplateNode> DBHooks<TT> {
-    pub fn use_world_memo<TResult: PartialEq>(mut memo_fn: impl FnMut(&mut World) -> TResult + 'static) -> Memo<TResult>
-    {
+impl<TT: DioxusBevyTemplateNode> DioxusBevyHooks<TT> {
+    pub fn use_world_memo<TResult: PartialEq>(
+        mut memo_fn: impl FnMut(&mut World) -> TResult + 'static,
+    ) -> Memo<TResult> {
         let value = use_memo(move || {
             let world = EcsContext::<TT>::get_world();
             memo_fn(world)
         });
-        value 
+        value
+    }
+
+    pub fn use_world_callback<TResult>(
+        mut callback_fn: impl FnMut(&mut World) -> TResult + 'static,
+    ) -> UseCallback<TResult> {
+        use_callback(move || {
+            let world = EcsContext::<TT>::get_world();
+            callback_fn(world)
+        })
     }
 }

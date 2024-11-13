@@ -1,6 +1,17 @@
 # Dioxus Bevy (Experiment)
 
-> Experimental, extensible Bevy renderer for Dioxus.
+<div align="center">
+  <h3 align="center">diouxs_bevy</h3>
+
+  <p align="center">
+    Experimental, extensible Bevy renderer for Dioxus.
+  </p>
+</div>
+
+> A lot of this is based off [Jasmine's bevy_dioxus example](https://github.com/JMS55/bevy_dioxus/).  Thanks
+> for doing most of the work.
+
+
 
 ## How (do I use it)?
 

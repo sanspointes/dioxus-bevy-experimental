@@ -23,6 +23,9 @@ pub fn generate_dioxus_elements(model: &Model) -> TokenStream {
             impl #el_ident {
                 pub const TAG_NAME: &'static str = stringify!(#el_ident);
                 pub const NAME_SPACE: Option<&'static str> = NAME_SPACE;
+
+                pub const entity: AttributeDescription = ("entity", None, false);
+
                 #element_attributes
                 #component_attributes
             }

@@ -1,6 +1,6 @@
 use bevy::prelude::*;
-use dioxus_bevy::*;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
+use dioxus_bevy::*;
 
 // You're going to have to define all of your elements / attributes in here.
 #[dioxus_bevy::dioxus_bevy]
@@ -8,7 +8,6 @@ pub mod my_adapter {
     use bevy::prelude::*;
     use dioxus_bevy::*;
     use dioxus_core::AttributeValue;
-
 
     // Implement custom attributes
     #[define_attr()]
@@ -33,12 +32,11 @@ pub mod my_adapter {
             #[component]
             visibility: Visibility,
 
-            // Can compose your attributes across multiple elements. 
+            // Can compose your attributes across multiple elements.
             #[attr]
             is_visible: is_visible_attr,
         }
         impl DioxusBevyElement for spatial {}
-
     }
 }
 
@@ -46,8 +44,15 @@ use my_adapter::*;
 
 #[component]
 pub fn root_component() -> Element {
+    let outer_entity = Hooks::use_entity();
+    let inner_entity = Hooks::use_entity();
+
+    use_effect(move || {
+        println!("outer_entity: {outer_entity:?}, inner_entity: {inner_entity:?}.");
+    });
     rsx! {
         spatial {
+            entity: outer_entity,
             // Pass your values to your attributes
             is_visible: true,
             // Reactively set whole attributes (must be wrapped with the WA, WrappedAttribute, struct)
@@ -55,6 +60,7 @@ pub fn root_component() -> Element {
 
             // Only dependency is bevy_hierarchy
             spatial {
+                entity: inner_entity,
                 visibility: WA(Visibility::Visible),
             }
         }
@@ -62,7 +68,10 @@ pub fn root_component() -> Element {
 }
 
 pub fn spawn_root(mut commands: Commands) {
-    commands.spawn((SpatialBundle::default(), DioxusBevyRootComponent(root_component)));
+    commands.spawn((
+        SpatialBundle::default(),
+        DioxusBevyRootComponent(root_component),
+    ));
 }
 
 pub fn main() {
@@ -74,4 +83,3 @@ pub fn main() {
     app.add_systems(Startup, spawn_root);
     app.run();
 }
-

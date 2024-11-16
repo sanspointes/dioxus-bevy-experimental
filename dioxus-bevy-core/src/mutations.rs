@@ -8,13 +8,20 @@ use bevy_utils::HashMap;
 use dioxus::{
     dioxus_core::{AttributeValue, ElementId, WriteMutations},
     prelude::Template,
+    signals::{Readable, Signal, Writable},
 };
 
-use crate::adapter::DioxusBevyTemplateNode;
+use crate::{
+    adapter::{AttributeValueHelpers, DioxusBevyTemplateNode},
+    hooks::use_entity::EntitySignal,
+};
 
 pub struct MutationApplier<'a, TT: DioxusBevyTemplateNode> {
     el_to_entity: &'a mut HashMap<ElementId, Entity>,
     entity_to_el: &'a mut EntityHashMap<ElementId>,
+    /// Lookup for Entity Id References so we can set / unset it when the entity is mounted /
+    /// unmounted.
+    entity_refs: &'a mut EntityHashMap<Signal<Option<Entity>>>,
     templates: &'a mut HashMap<String, BevyTemplate<TT>>,
     world: &'a mut World,
     stack: Vec<Entity>,
@@ -24,6 +31,7 @@ impl<'a, TT: DioxusBevyTemplateNode> MutationApplier<'a, TT> {
     pub fn new(
         el_to_entity: &'a mut HashMap<ElementId, Entity>,
         entity_to_el: &'a mut EntityHashMap<ElementId>,
+        entity_refs: &'a mut EntityHashMap<Signal<Option<Entity>>>,
         templates: &'a mut HashMap<String, BevyTemplate<TT>>,
         root_entity: Entity,
         world: &'a mut World,
@@ -34,6 +42,7 @@ impl<'a, TT: DioxusBevyTemplateNode> MutationApplier<'a, TT> {
         Self {
             el_to_entity,
             entity_to_el,
+            entity_refs,
             templates,
             world,
             stack: vec![root_entity],
@@ -46,11 +55,17 @@ impl<'a, TT: DioxusBevyTemplateNode> MutationApplier<'a, TT> {
         let mut ss: SystemState<Query<&Children>> = SystemState::new(self.world);
         let query_children = ss.get_mut(self.world);
         for child in query_children.iter_descendants(entity) {
+            if let Some(mut existing_entity_ref) = self.entity_refs.remove(&child) {
+                existing_entity_ref.set(None)
+            }
             if let Some(existing_element_id) = self.entity_to_el.remove(&child) {
                 self.el_to_entity.remove(&existing_element_id);
             }
         }
 
+        if let Some(mut existing_entity_ref) = self.entity_refs.remove(&entity) {
+            existing_entity_ref.set(None)
+        }
         if let Some(existing_element_id) = self.entity_to_el.remove(&entity) {
             self.el_to_entity.remove(&existing_element_id);
         }
@@ -208,7 +223,25 @@ impl<'a, TT: DioxusBevyTemplateNode> WriteMutations for MutationApplier<'a, TT> 
     ) {
         let entity = self.el_to_entity[&id];
 
-        TT::apply_attribute(self.world, entity, name, value);
+        println!("set_attribute {name} {ns:?} {id:?}");
+        match name {
+            "entity" => {
+                let AttributeValue::Any(boxed_any) = value else {
+                    bevy_utils::tracing::warn!("dioxus_bevy: Value passed to 'entity' attribute that wasn't an 'EntitySignal'.");
+                    return;
+                };
+                let Some(entity_signal) = boxed_any.as_any().downcast_ref::<EntitySignal>() else {
+                    bevy_utils::tracing::warn!("dioxus_bevy: Value passed to 'entity' attribute that wasn't an 'EntitySignal'.");
+                    return;
+                };
+                let mut entity_signal = *entity_signal;
+                entity_signal.set(Some(entity));
+                self.entity_refs.insert(entity, *entity_signal);
+            }
+            name => {
+                TT::apply_attribute(self.world, entity, name, value);
+            }
+        }
     }
 
     fn set_node_text(&mut self, value: &str, id: ElementId) {

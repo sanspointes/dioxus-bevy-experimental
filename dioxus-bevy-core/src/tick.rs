@@ -97,24 +97,17 @@ fn render_ui<TT: DioxusBevyTemplateNode>(
     #[cfg(feature = "hot_reload")]
     crate::hot_reload::update_templates(world, &mut ui_root.virtual_dom);
 
-    if ui_root.needs_rebuild {
-        let mut mutation_applier = MutationApplier::new(
-            &mut ui_root.el_to_entity,
-            &mut ui_root.entity_to_el,
-            &mut ui_root.templates,
-            root_entity,
-            world,
-        );
-        ui_root.virtual_dom.rebuild(&mut mutation_applier);
-        ui_root.needs_rebuild = false;
-    }
-
     let mut mutation_applier = MutationApplier::new(
         &mut ui_root.el_to_entity,
         &mut ui_root.entity_to_el,
+        &mut ui_root.entity_refs,
         &mut ui_root.templates,
         root_entity,
         world,
     );
+    if ui_root.needs_rebuild {
+        ui_root.virtual_dom.rebuild(&mut mutation_applier);
+        ui_root.needs_rebuild = false;
+    }
     ui_root.virtual_dom.render_immediate(&mut mutation_applier);
 }

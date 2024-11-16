@@ -4,6 +4,7 @@ mod ecs_hooks;
 // mod elements;
 mod mutations;
 mod tick;
+mod hooks;
 
 use std::marker::PhantomData;
 
@@ -13,7 +14,7 @@ use bevy_ecs::{entity::EntityHashMap, prelude::*};
 use bevy_utils::HashMap;
 use dioxus::{
     dioxus_core::{ElementId, VirtualDom},
-    prelude::Element,
+    prelude::Element, signals::Signal,
 };
 
 use adapter::DioxusBevyTemplateNode;
@@ -64,6 +65,7 @@ pub struct DioxusBevyRoot<TT: DioxusBevyTemplateNode> {
     virtual_dom: VirtualDom,
     el_to_entity: HashMap<ElementId, Entity>,
     entity_to_el: EntityHashMap<ElementId>,
+    entity_refs: EntityHashMap<Signal<Option<Entity>>>,
     templates: HashMap<String, BevyTemplate<TT>>,
     needs_rebuild: bool,
 }
@@ -74,6 +76,7 @@ impl<TT: DioxusBevyTemplateNode> DioxusBevyRoot<TT> {
             virtual_dom: VirtualDom::new(root_component.0),
             el_to_entity: HashMap::new(),
             entity_to_el: EntityHashMap::default(),
+            entity_refs: EntityHashMap::default(),
             templates: HashMap::new(),
             needs_rebuild: true,
         }

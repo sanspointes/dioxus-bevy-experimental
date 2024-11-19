@@ -1,6 +1,6 @@
 [package]
-name = "dioxus-bevy-macro"
-version = "0.0.0"
+name = "bevy-spts-dioxus-macro"
+version = "0.0.1"
 edition = "2021"
 
 [lib]

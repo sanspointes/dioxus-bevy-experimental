@@ -12,11 +12,11 @@ use dioxus::{
 };
 
 use crate::{
-    adapter::{AttributeValueHelpers, DioxusBevyTemplateNode},
+    adapter::{AttributeValueHelpers, SptsDioxusTemplateNode},
     hooks::use_entity::EntitySignal,
 };
 
-pub struct MutationApplier<'a, TT: DioxusBevyTemplateNode> {
+pub struct MutationApplier<'a, TT: SptsDioxusTemplateNode> {
     el_to_entity: &'a mut HashMap<ElementId, Entity>,
     entity_to_el: &'a mut EntityHashMap<ElementId>,
     /// Lookup for Entity Id References so we can set / unset it when the entity is mounted /
@@ -27,7 +27,7 @@ pub struct MutationApplier<'a, TT: DioxusBevyTemplateNode> {
     stack: Vec<Entity>,
 }
 
-impl<'a, TT: DioxusBevyTemplateNode> MutationApplier<'a, TT> {
+impl<'a, TT: SptsDioxusTemplateNode> MutationApplier<'a, TT> {
     pub fn new(
         el_to_entity: &'a mut HashMap<ElementId, Entity>,
         entity_to_el: &'a mut EntityHashMap<ElementId>,
@@ -50,7 +50,7 @@ impl<'a, TT: DioxusBevyTemplateNode> MutationApplier<'a, TT> {
     }
 }
 
-impl<'a, TT: DioxusBevyTemplateNode> MutationApplier<'a, TT> {
+impl<'a, TT: SptsDioxusTemplateNode> MutationApplier<'a, TT> {
     pub fn despawn_recursive(&mut self, entity: Entity) {
         let mut ss: SystemState<Query<&Children>> = SystemState::new(self.world);
         let query_children = ss.get_mut(self.world);
@@ -74,7 +74,7 @@ impl<'a, TT: DioxusBevyTemplateNode> MutationApplier<'a, TT> {
     }
 }
 
-impl<'a, TT: DioxusBevyTemplateNode> WriteMutations for MutationApplier<'a, TT> {
+impl<'a, TT: SptsDioxusTemplateNode> WriteMutations for MutationApplier<'a, TT> {
     fn register_template(&mut self, template: Template) {
         println!("WriteMutations::register_template(template: {template:?})");
         self.templates.insert(
@@ -227,11 +227,11 @@ impl<'a, TT: DioxusBevyTemplateNode> WriteMutations for MutationApplier<'a, TT> 
         match name {
             "entity" => {
                 let AttributeValue::Any(boxed_any) = value else {
-                    bevy_utils::tracing::warn!("dioxus_bevy: Value passed to 'entity' attribute that wasn't an 'EntitySignal'.");
+                    bevy_utils::tracing::warn!("bevy_spts_dioxus: Value passed to 'entity' attribute that wasn't an 'EntitySignal'.");
                     return;
                 };
                 let Some(entity_signal) = boxed_any.as_any().downcast_ref::<EntitySignal>() else {
-                    bevy_utils::tracing::warn!("dioxus_bevy: Value passed to 'entity' attribute that wasn't an 'EntitySignal'.");
+                    bevy_utils::tracing::warn!("bevy_spts_dioxus: Value passed to 'entity' attribute that wasn't an 'EntitySignal'.");
                     return;
                 };
                 let mut entity_signal = *entity_signal;
@@ -279,11 +279,11 @@ impl<'a, TT: DioxusBevyTemplateNode> WriteMutations for MutationApplier<'a, TT> 
 }
 
 #[derive(Debug)]
-pub struct BevyTemplate<TT: DioxusBevyTemplateNode> {
+pub struct BevyTemplate<TT: SptsDioxusTemplateNode> {
     roots: Box<[TT]>,
 }
 
-impl<TT: DioxusBevyTemplateNode> BevyTemplate<TT> {
+impl<TT: SptsDioxusTemplateNode> BevyTemplate<TT> {
     fn from_dioxus(template: &Template) -> Self {
         Self {
             roots: template

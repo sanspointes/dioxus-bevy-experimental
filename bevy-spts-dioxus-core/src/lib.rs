@@ -17,18 +17,18 @@ use dioxus::{
     prelude::Element, signals::Signal,
 };
 
-use adapter::DioxusBevyTemplateNode;
+use adapter::SptsDioxusTemplateNode;
 use deferred_system::DeferredSystemRunQueue;
 use ecs_hooks::EcsSubscriptions;
 use mutations::BevyTemplate;
 use tick::tick_dioxus_ui;
 
 #[derive(Debug, Clone, Copy)]
-pub struct DioxusBevyPlugin<TT: DioxusBevyTemplateNode> {
+pub struct SptsDioxusPlugin<TT: SptsDioxusTemplateNode> {
     template_pd: PhantomData<TT>,
 }
 
-impl<TT: DioxusBevyTemplateNode> Default for DioxusBevyPlugin<TT> {
+impl<TT: SptsDioxusTemplateNode> Default for SptsDioxusPlugin<TT> {
     fn default() -> Self {
         Self {
             template_pd: PhantomData,
@@ -36,20 +36,20 @@ impl<TT: DioxusBevyTemplateNode> Default for DioxusBevyPlugin<TT> {
     }
 }
 
-impl<TT: DioxusBevyTemplateNode> Plugin for DioxusBevyPlugin<TT> {
+impl<TT: SptsDioxusTemplateNode> Plugin for SptsDioxusPlugin<TT> {
     fn build(&self, app: &mut App) {
-        app.init_non_send_resource::<DioxusBevyContext<TT>>()
+        app.init_non_send_resource::<SptsDioxusContext<TT>>()
             .init_resource::<DeferredSystemRunQueue>()
             .add_systems(Last, tick_dioxus_ui::<TT>);
     }
 }
 
-pub struct DioxusBevyContext<TT: DioxusBevyTemplateNode> {
-    roots: HashMap<(Entity, DioxusBevyRootComponent), DioxusBevyRoot<TT>>,
+pub struct SptsDioxusContext<TT: SptsDioxusTemplateNode> {
+    roots: HashMap<(Entity, SptsDioxusRootComponent), SptsDioxusRoot<TT>>,
     subscriptions: EcsSubscriptions,
 }
 
-impl<TT: DioxusBevyTemplateNode> FromWorld for DioxusBevyContext<TT> {
+impl<TT: SptsDioxusTemplateNode> FromWorld for SptsDioxusContext<TT> {
     fn from_world(_world: &mut World) -> Self {
         Self {
             roots: HashMap::default(),
@@ -59,9 +59,9 @@ impl<TT: DioxusBevyTemplateNode> FromWorld for DioxusBevyContext<TT> {
 }
 
 #[derive(Component, Deref, Hash, PartialEq, Eq, Clone, Copy)]
-pub struct DioxusBevyRootComponent(pub fn() -> Element);
+pub struct SptsDioxusRootComponent(pub fn() -> Element);
 
-pub struct DioxusBevyRoot<TT: DioxusBevyTemplateNode> {
+pub struct SptsDioxusRoot<TT: SptsDioxusTemplateNode> {
     virtual_dom: VirtualDom,
     el_to_entity: HashMap<ElementId, Entity>,
     entity_to_el: EntityHashMap<ElementId>,
@@ -70,8 +70,8 @@ pub struct DioxusBevyRoot<TT: DioxusBevyTemplateNode> {
     needs_rebuild: bool,
 }
 
-impl<TT: DioxusBevyTemplateNode> DioxusBevyRoot<TT> {
-    fn new(root_component: DioxusBevyRootComponent) -> Self {
+impl<TT: SptsDioxusTemplateNode> SptsDioxusRoot<TT> {
+    fn new(root_component: SptsDioxusRootComponent) -> Self {
         Self {
             virtual_dom: VirtualDom::new(root_component.0),
             el_to_entity: HashMap::new(),
@@ -84,7 +84,7 @@ impl<TT: DioxusBevyTemplateNode> DioxusBevyRoot<TT> {
 }
 
 pub mod prelude {
-    pub use super::{DioxusBevyContext, DioxusBevyPlugin, DioxusBevyRoot, DioxusBevyRootComponent};
+    pub use super::{SptsDioxusContext, SptsDioxusPlugin, SptsDioxusRoot, SptsDioxusRootComponent};
     pub use crate::adapter::*;
     pub use crate::ecs_hooks::*;
     pub use dioxus;

@@ -1,4 +1,4 @@
-use crate::{adapter::DioxusBevyTemplateNode, DioxusBevyContext};
+use crate::{adapter::SptsDioxusTemplateNode, SptsDioxusContext};
 use bevy_ecs::{
     component::ComponentId,
     query::{QueryFilter, ReadOnlyQueryData},
@@ -25,17 +25,17 @@ pub(crate) struct EcsSubscriptions {
 /// Struct that has static functions for hooks that use the correct adapter.
 ///
 /// * `pd`:
-pub struct DioxusBevyHooks<TT: DioxusBevyTemplateNode> {
+pub struct SptsDioxusHooks<TT: SptsDioxusTemplateNode> {
     pd: PhantomData<TT>,
 }
 
 #[derive(Clone)]
-pub(crate) struct EcsContext<TT: DioxusBevyTemplateNode> {
+pub(crate) struct EcsContext<TT: SptsDioxusTemplateNode> {
     pub world: *mut World,
     pd: PhantomData<TT>,
 }
 
-impl<TT: DioxusBevyTemplateNode> EcsContext<TT> {
+impl<TT: SptsDioxusTemplateNode> EcsContext<TT> {
     pub fn new(world: *mut World) -> Self {
         Self {
             world,
@@ -44,20 +44,20 @@ impl<TT: DioxusBevyTemplateNode> EcsContext<TT> {
     }
 }
 
-impl<TT: DioxusBevyTemplateNode> EcsContext<TT> {
+impl<TT: SptsDioxusTemplateNode> EcsContext<TT> {
     pub fn get_world<'a>() -> &'a mut World {
         unsafe { &mut *consume_context::<EcsContext<TT>>().world }
     }
 }
 
-impl<TT: DioxusBevyTemplateNode> DioxusBevyHooks<TT> {
+impl<TT: SptsDioxusTemplateNode> SptsDioxusHooks<TT> {
     pub fn use_world<'a>() -> &'a World {
         let world = EcsContext::<TT>::get_world();
 
         let scope_id = current_scope_id().unwrap();
         let subscription_manager = use_hook(|| {
             let subscription_manager = &mut world
-                .non_send_resource_mut::<DioxusBevyContext<TT>>()
+                .non_send_resource_mut::<SptsDioxusContext<TT>>()
                 .subscriptions
                 .world_and_queries;
             subscription_manager.insert(scope_id);
@@ -77,7 +77,7 @@ impl<TT: DioxusBevyTemplateNode> DioxusBevyHooks<TT> {
         let scope_id = current_scope_id().unwrap();
         let subscription_manager = use_hook(|| {
             let subscription_manager = &mut world
-                .non_send_resource_mut::<DioxusBevyContext<TT>>()
+                .non_send_resource_mut::<SptsDioxusContext<TT>>()
                 .subscriptions
                 .resources;
             subscription_manager
@@ -99,7 +99,7 @@ impl<TT: DioxusBevyTemplateNode> DioxusBevyHooks<TT> {
     }
 }
 
-impl<TT: DioxusBevyTemplateNode> DioxusBevyHooks<TT> {
+impl<TT: SptsDioxusTemplateNode> SptsDioxusHooks<TT> {
     pub fn use_query<'a, Q>() -> UseQuery<'a, Q, ()>
     where
         Q: ReadOnlyQueryData,
@@ -117,7 +117,7 @@ impl<TT: DioxusBevyTemplateNode> DioxusBevyHooks<TT> {
         let scope_id = current_scope_id().unwrap();
         let subscription_manager = use_hook(|| {
             let subscription_manager = &mut world
-                .non_send_resource_mut::<DioxusBevyContext<TT>>()
+                .non_send_resource_mut::<SptsDioxusContext<TT>>()
                 .subscriptions
                 .world_and_queries;
             subscription_manager.insert(scope_id);
@@ -149,7 +149,7 @@ where
     }
 }
 
-impl<TT: DioxusBevyTemplateNode> DioxusBevyHooks<TT> {
+impl<TT: SptsDioxusTemplateNode> SptsDioxusHooks<TT> {
     pub fn use_world_memo<TResult: PartialEq>(
         mut memo_fn: impl FnMut(&mut World) -> TResult + 'static,
     ) -> Memo<TResult> {

@@ -28,13 +28,13 @@ pub fn generate_template_node(model: &Model) -> TokenStream {
     quote! {
         #[allow(non_camel_case_types)]
         #[derive(Debug, Clone, PartialEq)]
-        pub enum DioxusBevyAdapter {
+        pub enum SptsDioxusAdapter {
             #variants
 
             Dynamic { id: usize },
         }
 
-        pub type Hooks = DioxusBevyHooks<DioxusBevyAdapter>;
+        pub type Hooks = SptsDioxusHooks<SptsDioxusAdapter>;
     }
 }
 
@@ -48,7 +48,7 @@ fn implement_from_dioxus(model: &Model) -> TokenStream {
             quote! {
                 dioxus_core::TemplateNode::Element {
                     tag: stringify!(#element_ident),
-                    namespace: Some("dioxus_bevy"),
+                    namespace: Some("bevy_spts_dioxus"),
                     attrs: _,
                     children,
                 } => {
@@ -75,11 +75,11 @@ fn implement_from_dioxus(model: &Model) -> TokenStream {
                     attrs,
                     children,
                 } => {
-                    core::panic!("dioxus_bevy: Unknown dioxus element '{tag}' with namespace {namespace:?}.")
+                    core::panic!("bevy_spts_dioxus: Unknown dioxus element '{tag}' with namespace {namespace:?}.")
                 }
 
                 other => {
-                    core::panic!("dioxus_bevy: Unsupported dioxus node {other:?}.")
+                    core::panic!("bevy_spts_dioxus: Unsupported dioxus node {other:?}.")
                 }
             }
         }
@@ -137,7 +137,7 @@ fn implement_spawn(model: &Model) -> TokenStream {
                         .map(|child| child.spawn(world))
                         .collect::<Box<[_]>>();
 
-                    use dioxus_bevy::DioxusBevyElement;
+                    use bevy_spts_dioxus::SptsDioxusElement;
                     let mut entity_mut = dioxus_elements::#element_ident::spawn(world);
                     #insert_components
                     entity_mut.push_children(&children);
@@ -199,12 +199,12 @@ fn implement_apply_attribute(model: &Model) -> TokenStream {
             quote! { stringify!(#field_ident) => {
                 let value = value
                     .as_concrete::<#component_type>()
-                    .unwrap_or_else(|| panic!("dioxus_bevy: While applying component attr '{}', couldn't downcast to type '{}'.", stringify!(#field_ident), stringify!(#component_type)))
+                    .unwrap_or_else(|| panic!("bevy_spts_dioxus: While applying component attr '{}', couldn't downcast to type '{}'.", stringify!(#field_ident), stringify!(#component_type)))
                     .clone();
                 let mut entity_mut = world.entity_mut(entity);
                 let mut current_value = entity_mut
                     .get_mut::<#component_type>()
-                    .unwrap_or_else(|| panic!("dioxus_bevy: While applying component attr '{}', couldn't get component '{}' on entity '{entity:?}' to mutate.", stringify!(#field_ident), stringify!(#component_type)));
+                    .unwrap_or_else(|| panic!("bevy_spts_dioxus: While applying component attr '{}', couldn't get component '{}' on entity '{entity:?}' to mutate.", stringify!(#field_ident), stringify!(#component_type)));
                 *current_value = value;
             } }
         })
@@ -222,7 +222,7 @@ fn implement_apply_attribute(model: &Model) -> TokenStream {
                 #attribute_matches
                 #component_matches
 
-                unknown => core::panic!("dioxus_bevy: Unexpected attribute '{unknown}'."),
+                unknown => core::panic!("bevy_spts_dioxus: Unexpected attribute '{unknown}'."),
             }
         }
     }
@@ -236,7 +236,7 @@ pub fn implement_template_node(model: &Model) -> TokenStream {
     let apply_attribute = implement_apply_attribute(model);
 
     quote! {
-        impl dioxus_bevy::DioxusBevyTemplateNode for DioxusBevyAdapter {
+        impl bevy_spts_dioxus::SptsDioxusTemplateNode for SptsDioxusAdapter {
             #from_dioxus
 
             #spawn

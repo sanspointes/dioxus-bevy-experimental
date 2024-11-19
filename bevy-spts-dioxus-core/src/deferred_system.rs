@@ -1,4 +1,4 @@
-use crate::{adapter::DioxusBevyTemplateNode, ecs_hooks::EcsContext};
+use crate::{adapter::SptsDioxusTemplateNode, ecs_hooks::EcsContext};
 use bevy_ecs::system::{IntoSystem, Resource, System};
 
 #[derive(Resource, Default)]
@@ -24,7 +24,7 @@ impl DeferredSystemScheduler {
 unsafe impl Send for DeferredSystemScheduler {}
 unsafe impl Sync for DeferredSystemScheduler {}
 
-pub fn use_system_scheduler<TT: DioxusBevyTemplateNode>() -> DeferredSystemScheduler {
+pub fn use_system_scheduler<TT: SptsDioxusTemplateNode>() -> DeferredSystemScheduler {
     DeferredSystemScheduler {
         run_queue: Box::as_mut(
             &mut EcsContext::<TT>::get_world()

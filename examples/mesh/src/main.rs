@@ -4,21 +4,21 @@
 //! to generate the rendering adapter for your project.
 //!
 //! It works by manually defining the dioxus_elements module + the elements enum + implementing the
-//! DioxusBevyTemplateNode trait on the elements enum to provide all the logic to spawn and mutate
+//! SptsDioxusTemplateNode trait on the elements enum to provide all the logic to spawn and mutate
 //! the elements.  It's a bit of a pain because a few things need to be kept in sync.
 //!
 //! 1. If you define an attribute in dioxus_elements you must handle it in `set_attribute`.
 //! 2. If you define an element in `dioxus_elements` you must handle it in `from_dioxus` and `spawn`
 use bevy::prelude::*;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
-use dioxus_bevy::*;
+use bevy_spts_dioxus::*;
 use my_adapter::*;
 
 #[allow(non_camel_case_types)]
-#[dioxus_bevy]
+#[bevy_spts_dioxus]
 mod my_adapter {
     use bevy::prelude::*;
-    use dioxus_bevy::*;
+    use bevy_spts_dioxus::*;
     use dioxus_core::AttributeValue;
 
     use bevy::{
@@ -75,7 +75,7 @@ mod my_adapter {
             }
 
             let value = *value.as_concrete::<Color>().unwrap_or_else(|| {
-                panic!("dioxus_bevy: 'color' attribute error unwrapping 'Color'.  Found {value:?}.")
+                panic!("bevy_spts_dioxus: 'color' attribute error unwrapping 'Color'.  Found {value:?}.")
             });
             let handle = color_materials.add(value);
             world.entity_mut(entity).insert(handle);
@@ -87,7 +87,7 @@ mod my_adapter {
             core_pipeline::{core_3d::graph::Core3d, tonemapping::DebandDither},
             render::camera::CameraRenderGraph,
         };
-        use dioxus_bevy::DioxusBevyElement;
+        use bevy_spts_dioxus::SptsDioxusElement;
 
         #[define_element]
         struct spatial {
@@ -111,7 +111,7 @@ mod my_adapter {
             #[attr]
             position_z: position_z,
         }
-        impl DioxusBevyElement for spatial {}
+        impl SptsDioxusElement for spatial {}
 
         #[define_element]
         struct colormesh {
@@ -141,7 +141,7 @@ mod my_adapter {
             #[attr]
             color: color,
         }
-        impl DioxusBevyElement for colormesh {}
+        impl SptsDioxusElement for colormesh {}
 
         #[define_element]
         struct perspectivecamera {
@@ -178,7 +178,7 @@ mod my_adapter {
             #[attr]
             position_z: position_z,
         }
-        impl DioxusBevyElement for perspectivecamera {
+        impl SptsDioxusElement for perspectivecamera {
             fn spawn(world: &mut bevy::ecs::world::World) -> bevy::prelude::EntityWorldMut<'_> {
                 world.spawn((CameraRenderGraph::new(Core3d), DebandDither::Enabled))
             }
@@ -193,7 +193,7 @@ pub struct State {
 pub fn main() {
     let mut app = App::new();
     app.add_plugins(DefaultPlugins);
-    app.add_plugins(DioxusBevyPlugin::<my_adapter::DioxusBevyAdapter>::default());
+    app.add_plugins(SptsDioxusPlugin::<my_adapter::SptsDioxusAdapter>::default());
     app.add_plugins(WorldInspectorPlugin::new());
 
     app.add_systems(Startup, setup);
@@ -239,7 +239,7 @@ pub fn root() -> Element {
 }
 
 pub fn setup(mut commands: Commands) {
-    commands.spawn((SpatialBundle::default(), DioxusBevyRootComponent(root)));
+    commands.spawn((SpatialBundle::default(), SptsDioxusRootComponent(root)));
 }
 
 pub fn update(button_state: Res<ButtonInput<KeyCode>>, mut state: ResMut<State>) {

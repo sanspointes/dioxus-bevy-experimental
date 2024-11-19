@@ -1,0 +1,8 @@
+[package]
+name = "bevy-spts-dioxus"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+bevy-spts-dioxus-core = { version = "0.0.1", path = "../bevy-spts-dioxus-core" }
+bevy-spts-dioxus-macro = { version = "0.0.1", path = "../bevy-spts-dioxus-macro" }

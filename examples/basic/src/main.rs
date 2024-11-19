@@ -1,12 +1,12 @@
 use bevy::prelude::*;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
-use dioxus_bevy::*;
+use bevy_spts_dioxus::*;
 
 // You're going to have to define all of your elements / attributes in here.
-#[dioxus_bevy::dioxus_bevy]
+#[bevy_spts_dioxus::bevy_spts_dioxus]
 pub mod my_adapter {
     use bevy::prelude::*;
-    use dioxus_bevy::*;
+    use bevy_spts_dioxus::*;
     use dioxus_core::AttributeValue;
 
     // Implement custom attributes
@@ -22,7 +22,7 @@ pub mod my_adapter {
     }
 
     pub mod dioxus_elements {
-        use dioxus_bevy::DioxusBevyElement;
+        use bevy_spts_dioxus::SptsDioxusElement;
 
         #[define_element]
         pub struct spatial {
@@ -36,7 +36,7 @@ pub mod my_adapter {
             #[attr]
             is_visible: is_visible_attr,
         }
-        impl DioxusBevyElement for spatial {}
+        impl SptsDioxusElement for spatial {}
     }
 }
 
@@ -70,14 +70,14 @@ pub fn root_component() -> Element {
 pub fn spawn_root(mut commands: Commands) {
     commands.spawn((
         SpatialBundle::default(),
-        DioxusBevyRootComponent(root_component),
+        SptsDioxusRootComponent(root_component),
     ));
 }
 
 pub fn main() {
     let mut app = App::new();
     app.add_plugins(DefaultPlugins);
-    app.add_plugins(DioxusBevyPlugin::<my_adapter::DioxusBevyAdapter>::default());
+    app.add_plugins(SptsDioxusPlugin::<my_adapter::SptsDioxusAdapter>::default());
     app.add_plugins(WorldInspectorPlugin::new());
     // Spawn your root bundle.
     app.add_systems(Startup, spawn_root);

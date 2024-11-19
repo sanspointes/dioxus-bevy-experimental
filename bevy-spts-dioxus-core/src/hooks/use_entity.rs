@@ -7,7 +7,7 @@ use dioxus::{
     signals::Signal,
 };
 
-use crate::{adapter::DioxusBevyTemplateNode, prelude::DioxusBevyHooks};
+use crate::{adapter::SptsDioxusTemplateNode, prelude::SptsDioxusHooks};
 
 #[derive(Debug, PartialEq, Clone, Copy, Deref, DerefMut)]
 pub struct EntitySignal(Signal<Option<Entity>>);
@@ -18,7 +18,7 @@ impl IntoAttributeValue for EntitySignal {
     }
 }
 
-impl<TT: DioxusBevyTemplateNode> DioxusBevyHooks<TT> {
+impl<TT: SptsDioxusTemplateNode> SptsDioxusHooks<TT> {
     /// Returns an EntitySignal that can be passed via the `entity` attribute
     /// to an element to get a handle to the entity in the scene.
     ///

@@ -1,8 +1,0 @@
-[package]
-name = "dioxus-bevy"
-version = "0.1.0"
-edition = "2021"
-
-[dependencies]
-dioxus-bevy-core = { version = "0.0.0", path = "../dioxus-bevy-core" }
-dioxus-bevy-macro = { version = "0.0.0", path = "../dioxus-bevy-macro" }

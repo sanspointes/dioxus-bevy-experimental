@@ -11,7 +11,7 @@ use syn::parse2;
 ///
 /// * `input`:
 #[proc_macro_attribute]
-pub fn dioxus_bevy(_attr: proc_macro::TokenStream, input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+pub fn bevy_spts_dioxus(_attr: proc_macro::TokenStream, input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let input = proc_macro2::TokenStream::from(input);
     let model = match parse2::<Model>(input) {
         Ok(model) => model,

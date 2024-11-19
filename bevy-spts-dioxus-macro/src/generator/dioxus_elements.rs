@@ -44,7 +44,7 @@ pub fn generate_dioxus_elements(model: &Model) -> TokenStream {
             #pass_through_items
 
             pub type AttributeDescription = (&'static str, Option<&'static str>, bool);
-            const NAME_SPACE: Option<&'static str> = Some("dioxus_bevy");
+            const NAME_SPACE: Option<&'static str> = Some("bevy_spts_dioxus");
 
             #elements
         }

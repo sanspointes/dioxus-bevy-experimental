@@ -33,7 +33,7 @@ impl Parse for Model {
         let module = input.parse::<ItemMod>().map_err(|err| {
             syn::Error::new(
                 err.span(),
-                "Expected a module `mod my_dioxus_bevy_adapter { ... }`.",
+                "Expected a module `mod my_bevy_spts_dioxus_adapter { ... }`.",
             )
         })?;
 

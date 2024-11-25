@@ -21,6 +21,7 @@ pub fn generate_template_node(model: &Model) -> TokenStream {
             let ident = &el_def.ident;
             quote! { #ident {
                 children: Box<[Self]>,
+                attributes: Vec<bevy_spts_dioxus::StaticTemplateAttribute>,
             },}
         })
         .collect();
@@ -49,12 +50,15 @@ fn implement_from_dioxus(model: &Model) -> TokenStream {
                 dioxus_core::TemplateNode::Element {
                     tag: stringify!(#element_ident),
                     namespace: Some("bevy_spts_dioxus"),
-                    attrs: _,
+                    attrs,
                     children,
                 } => {
                     let children = children.iter().map(Self::from_dioxus).collect();
-
-                    Self::#element_ident { children }
+                    let attributes: Vec<bevy_spts_dioxus::StaticTemplateAttribute> = attrs.
+                        iter()
+                        .filter_map(|v| v.try_into().ok())
+                        .collect();
+                    Self::#element_ident { children, attributes }
                 }
             }
         })
@@ -101,8 +105,6 @@ fn implement_spawn(model: &Model) -> TokenStream {
                     .map(|component_ident| {
                         let ElementComponent { component_type, .. } = component_ident;
 
-                        println!("implement_spawn: {component_type:?}");
-
                         let last_segment = component_type.path.segments.last().unwrap();
                         // The identifier for the type, like `Handle`
                         let ident = &last_segment.ident;
@@ -131,7 +133,7 @@ fn implement_spawn(model: &Model) -> TokenStream {
             };
 
             quote! {
-                Self::#element_ident { children } => {
+                Self::#element_ident { children, attributes } => {
                     let children = children
                         .iter()
                         .map(|child| child.spawn(world))
@@ -142,7 +144,11 @@ fn implement_spawn(model: &Model) -> TokenStream {
                     #insert_components
                     entity_mut.push_children(&children);
                     let entity = entity_mut.id();
-                    ;
+                    // Apply static attributes
+                    for attr in attributes {
+                        let value = dioxus_core::AttributeValue::Text(attr.value.into());
+                        Self::apply_attribute(world, entity, attr.name, &value);
+                    }
                     entity
                 }
             }

@@ -9,6 +9,18 @@ pub mod my_adapter {
     use bevy_spts_dioxus::*;
     use dioxus_core::AttributeValue;
 
+    #[define_attr]
+    pub fn name_attr(world: &mut World, entity: Entity, value: &AttributeValue) {
+        let mut entity_mut = world.entity_mut(entity);
+        if let Some(name) = value.as_string() {
+            entity_mut.insert(Name::from(name.as_str()));
+        } else if let Some(name) = value.as_concrete::<Name>() {
+            entity_mut.insert(name.clone());
+        } else {
+            entity_mut.remove::<Name>();
+        }
+    }
+
     // Implement custom attributes
     #[define_attr()]
     pub fn is_visible_attr(world: &mut World, entity: Entity, value: &AttributeValue) {
@@ -32,6 +44,8 @@ pub mod my_adapter {
             #[component]
             visibility: Visibility,
 
+            #[attr]
+            name: name_attr,
             // Can compose your attributes across multiple elements.
             #[attr]
             is_visible: is_visible_attr,
@@ -53,6 +67,7 @@ pub fn root_component() -> Element {
     rsx! {
         spatial {
             entity: outer_entity,
+            name: "Outer",
             // Pass your values to your attributes
             is_visible: true,
             // Reactively set whole attributes (must be wrapped with the WA, WrappedAttribute, struct)
@@ -61,6 +76,7 @@ pub fn root_component() -> Element {
             // Only dependency is bevy_hierarchy
             spatial {
                 entity: inner_entity,
+                name: "Inner",
                 visibility: WA(Visibility::Visible),
             }
         }

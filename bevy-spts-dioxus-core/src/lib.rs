@@ -5,6 +5,7 @@ mod ecs_hooks;
 mod mutations;
 mod tick;
 mod hooks;
+mod utils;
 
 use std::marker::PhantomData;
 
@@ -87,6 +88,7 @@ pub mod prelude {
     pub use super::{SptsDioxusContext, SptsDioxusPlugin, SptsDioxusRoot, SptsDioxusRootComponent};
     pub use crate::adapter::*;
     pub use crate::ecs_hooks::*;
+    pub use crate::utils::*;
     pub use dioxus;
     pub use dioxus::prelude::{Event as DioxusEvent, *};
 }

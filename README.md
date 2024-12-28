@@ -8,10 +8,10 @@
   </p>
 </div>
 
-> A lot of this is based off [Jasmine's bevy_dioxus example](https://github.com/JMS55/bevy_dioxus/).  Thanks
+> A lot of this is based off [Jasmine's bevy_dioxus example](https://github.com/JMS55/bevy_dioxus/). Thanks
 > for doing most of the work.
 
-This is pre-alpha software and will either be heavily refactored (to make defining all of your elements less verbose) or abandoned. 
+This is pre-alpha software and will either be heavily refactored (to make defining all of your elements less verbose) or abandoned.
 
 ## How (do I use it)?
 
@@ -42,7 +42,7 @@ pub mod my_adapter {
             #[component]
             visibility: Visibility,
 
-            // Can compose your attributes across multiple elements. 
+            // Can compose your attributes across multiple elements.
             #[attr]
             is_visible: is_visible_attr,
         }
@@ -83,41 +83,43 @@ pub fn main() {
 
 ## How (does it work)?
 
-The code in [bevy-spts-dioxus-core](./bevy-spts-dioxus-core/) is generic over a 
-`SptsDioxusTemplateNode` trait.  This trait implements all of the 
+The code in [bevy-spts-dioxus-core](./bevy-spts-dioxus-core/) is generic over a
+`SptsDioxusTemplateNode` trait. This trait implements all of the
 behaviour specific to your app, such as defining all of your elements,
 how to spawn your elements, and how to apply the attributes.
 
-When you define your adapter module with `#[bevy_spts_dioxus]` it will generate 
+When you define your adapter module with `#[bevy_spts_dioxus]` it will generate
 a `SptsDioxusAdapter` struct within that module that implements the `SptsDioxusTemplateNode`
-trait.  If you expand the macro it is (at least in this simple, early stage), 
+trait. If you expand the macro it is (at least in this simple, early stage),
 not too hard to see how it all works.
 
 The `SptsDioxusAdapter` is actually an enum of all of your different element types.
 
-## Gotchas 
+## Gotchas
 
 ### Global attribute keys
+
 Currently all attributes (whether they're components or from `#[define_attr]`)
 need to have a globally unique key, two elements can't have different attributes
-under the same key.  I'm open to fixing this but it's low priority.
+under the same key. I'm open to fixing this but it's low priority.
 
 ### Element naming
-Elements must be lowercase + not use any semi-colons.  This is a carry over from dioxus.
-If you try to name your element `mesh_3d` you'll get a not so nice error.  Instead you'll
+
+Elements must be lowercase + not use any semi-colons. This is a carry over from dioxus.
+If you try to name your element `mesh_3d` you'll get a not so nice error. Instead you'll
 have to name it `mesh3d`.
 
 ## What next
 
-Firstly, not sure of the life-span of this project.  If this experiment is promising and I can make use of it 
+Firstly, not sure of the life-span of this project. If this experiment is promising and I can make use of it
 for my own projects I'll try to invest more time into it.
 
 - [ ] Cleanup logs and warnings
-- [ ] Figure out what dioxus `Dynamic` nodes are for?  The don't seem to effect the heirarchy, is it possible we can just ignore them? 
-- [ ] Figure out a good API for defining event listeners. 
+- [ ] Figure out what dioxus `Dynamic` nodes are for? The don't seem to effect the heirarchy, is it possible we can just ignore them?
+- [ ] Figure out a good API for defining event listeners.
 - [ ] Build up a library of `macro_rules` to help cut down on boilerplate, i.e. provide `include_spatial_attr_definitions`, `include_spatial_components`, `include_spatial_attrs` that can be slotted into your `#[bevy_spts_dioxus]` module.
 - [ ] Add necessary hooks
-    - [x] `Hooks::use_world_memo()` - Use memo with access to world 
-    - [x] `Hooks::use_world_callback()` - Use callback with access to world.
+  - [x] `Hooks::use_world_memo()` - Use memo with access to world
+  - [x] `Hooks::use_world_callback()` - Use callback with access to world.
 - [ ] Either fix the [global attribute keys](#global-attribute-keys) gotcha or provide a better error message.
 - [ ] Better error message when [element has a bad name](#element-naming).

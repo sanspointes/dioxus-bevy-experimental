@@ -11,10 +11,10 @@ bevy_derive = "0.15"
 bevy_ecs = "0.15"
 bevy_hierarchy = "0.15"
 bevy_utils = "0.15"
-dioxus = { version = "0.5.6", default-features = false, features = ["macro", "signals", "hooks"] }
-dioxus-rsx = { default-features = false, version = "0.5.6", features = ["hot_reload"] }
+dioxus = { version = "0.6", default-features = false, features = ["macro", "signals", "hooks"] }
+dioxus-rsx = { default-features = false, version = "0.6" }
 
 [dev-dependencies]
 bevy = "0.15"
 bevy-inspector-egui = "0.28.0"
-dioxus-rsx = "0.5.6"
+dioxus-rsx = "0.6"

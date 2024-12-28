@@ -1,4 +1,4 @@
-use std::{any::Any, fmt::Debug};
+use std::{any::Any, fmt::Debug, rc::Rc};
 
 use bevy_ecs::{
     entity::Entity,
@@ -99,7 +99,7 @@ pub struct WA<T: Any + PartialEq>(pub T);
 
 impl<T: Any + PartialEq> IntoAttributeValue for WA<T> {
     fn into_value(self) -> AttributeValue {
-        AttributeValue::Any(Box::new(self.0))
+        AttributeValue::Any(Rc::new(self.0))
     }
 }
 

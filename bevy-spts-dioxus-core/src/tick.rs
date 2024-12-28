@@ -97,11 +97,10 @@ fn render_ui<TT: SptsDioxusTemplateNode>(
     #[cfg(feature = "hot_reload")]
     crate::hot_reload::update_templates(world, &mut ui_root.virtual_dom);
 
-    let mut mutation_applier = MutationApplier::new(
+    let mut mutation_applier = MutationApplier::<TT>::new(
         &mut ui_root.el_to_entity,
         &mut ui_root.entity_to_el,
         &mut ui_root.entity_refs,
-        &mut ui_root.templates,
         root_entity,
         world,
     );

@@ -8,8 +8,8 @@ use bevy_ecs::{
 use bevy_utils::{HashMap, HashSet};
 use dioxus::{
     dioxus_core::{use_hook, ScopeId},
-    hooks::{use_callback, use_memo, UseCallback},
-    prelude::{consume_context, current_scope_id, use_drop},
+    hooks::{use_callback, use_memo},
+    prelude::{consume_context, current_scope_id, use_drop, Callback},
     signals::Memo,
 };
 use std::{any::TypeId, marker::PhantomData};
@@ -160,12 +160,12 @@ impl<TT: SptsDioxusTemplateNode> SptsDioxusHooks<TT> {
         value
     }
 
-    pub fn use_world_callback<TResult>(
-        mut callback_fn: impl FnMut(&mut World) -> TResult + 'static,
-    ) -> UseCallback<TResult> {
-        use_callback(move || {
+    pub fn use_world_callback<TArgs: 'static, TResult: 'static>(
+        mut callback_fn: impl FnMut(&mut World, TArgs) -> TResult + 'static,
+    ) -> Callback<TArgs, TResult> {
+        use_callback(move |args| {
             let world = EcsContext::<TT>::get_world();
-            callback_fn(world)
+            callback_fn(world, args)
         })
     }
 }

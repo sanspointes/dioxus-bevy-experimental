@@ -1,3 +1,5 @@
+use std::marker::PhantomData;
+
 use bevy_ecs::{
     entity::{Entity, EntityHashMap},
     system::{Query, SystemState},
@@ -19,9 +21,9 @@ pub struct MutationApplier<'a, TT: SptsDioxusTemplateNode> {
     /// Lookup for Entity Id References so we can set / unset it when the entity is mounted /
     /// unmounted.
     entity_refs: &'a mut EntityHashMap<Signal<Option<Entity>>>,
-    templates: &'a mut HashMap<String, BevyTemplate<TT>>,
     world: &'a mut World,
     stack: Vec<Entity>,
+    pd: PhantomData<TT>,
 }
 
 impl<'a, TT: SptsDioxusTemplateNode> MutationApplier<'a, TT> {
@@ -29,7 +31,6 @@ impl<'a, TT: SptsDioxusTemplateNode> MutationApplier<'a, TT> {
         el_to_entity: &'a mut HashMap<ElementId, Entity>,
         entity_to_el: &'a mut EntityHashMap<ElementId>,
         entity_refs: &'a mut EntityHashMap<Signal<Option<Entity>>>,
-        templates: &'a mut HashMap<String, BevyTemplate<TT>>,
         root_entity: Entity,
         world: &'a mut World,
     ) -> Self {
@@ -40,9 +41,9 @@ impl<'a, TT: SptsDioxusTemplateNode> MutationApplier<'a, TT> {
             el_to_entity,
             entity_to_el,
             entity_refs,
-            templates,
             world,
             stack: vec![root_entity],
+            pd: PhantomData,
         }
     }
 }
@@ -72,14 +73,6 @@ impl<'a, TT: SptsDioxusTemplateNode> MutationApplier<'a, TT> {
 }
 
 impl<'a, TT: SptsDioxusTemplateNode> WriteMutations for MutationApplier<'a, TT> {
-    fn register_template(&mut self, template: Template) {
-        println!("WriteMutations::register_template(template: {template:?})");
-        self.templates.insert(
-            template.name.to_owned(),
-            BevyTemplate::from_dioxus(&template),
-        );
-    }
-
     fn append_children(&mut self, id: ElementId, m: usize) {
         println!("WriteMutations::append_children(id: {id:?}, m: {m:?})");
         let mut parent = self.world.entity_mut(self.el_to_entity[&id]);
@@ -121,26 +114,11 @@ impl<'a, TT: SptsDioxusTemplateNode> WriteMutations for MutationApplier<'a, TT> 
         // self.stack.push(entity);
     }
 
-    fn hydrate_text_node(&mut self, path: &'static [u8], value: &str, id: ElementId) {
-        println!("WriteMutations::hydrate_text_node(path: {path:?}, value: {value:?}, id: {id:?})");
-        todo!("hydrate_text_node");
-        // let mut entity = *self.stack.last().unwrap();
-        // for index in path {
-        //     entity = self.world.entity(entity).get::<Children>().unwrap()[*index as usize];
-        // }
-        // self.world.entity_mut(entity).insert((
-        //     Text::from_section(value, TextStyle::default()),
-        //     TextLayoutInfo::default(),
-        //     TextFlags::default(),
-        //     ContentSize::default(),
-        // ));
-        // self.el_to_entity.insert(id, entity);
-        // self.entity_to_el.insert(entity, id);
-    }
+    fn load_template(&mut self, template: Template, index: usize, id: ElementId) {
+        println!("WriteMutations::load_template(template: {template:?}, index: {index:?}, id: {id:?})");
+        let bevy_template = BevyTemplate::<TT>::from_dioxus(&template);
+        let entity = TT::spawn(&bevy_template.roots[index], self.world);
 
-    fn load_template(&mut self, name: &'static str, index: usize, id: ElementId) {
-        println!("WriteMutations::load_template(name: {name:?}, index: {index:?}, id: {id:?})");
-        let entity = self.templates[name].roots[index].spawn(self.world);
         self.el_to_entity.insert(id, entity);
         self.entity_to_el.insert(entity, id);
         self.stack.push(entity);

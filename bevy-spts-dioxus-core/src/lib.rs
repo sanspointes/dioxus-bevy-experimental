@@ -67,7 +67,7 @@ pub struct SptsDioxusRoot<TT: SptsDioxusTemplateNode> {
     el_to_entity: HashMap<ElementId, Entity>,
     entity_to_el: EntityHashMap<ElementId>,
     entity_refs: EntityHashMap<Signal<Option<Entity>>>,
-    templates: HashMap<String, BevyTemplate<TT>>,
+    pd: PhantomData<TT>,
     needs_rebuild: bool,
 }
 
@@ -78,7 +78,7 @@ impl<TT: SptsDioxusTemplateNode> SptsDioxusRoot<TT> {
             el_to_entity: HashMap::new(),
             entity_to_el: EntityHashMap::default(),
             entity_refs: EntityHashMap::default(),
-            templates: HashMap::new(),
+            pd: PhantomData,
             needs_rebuild: true,
         }
     }

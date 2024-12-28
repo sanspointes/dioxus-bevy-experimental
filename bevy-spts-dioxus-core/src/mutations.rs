@@ -3,18 +3,15 @@ use bevy_ecs::{
     system::{Query, SystemState},
     world::{Command, World},
 };
-use bevy_hierarchy::{BuildWorldChildren, Children, DespawnRecursive, HierarchyQueryExt, Parent};
+use bevy_hierarchy::{BuildChildren, Children, DespawnRecursive, HierarchyQueryExt, Parent};
 use bevy_utils::HashMap;
 use dioxus::{
     dioxus_core::{AttributeValue, ElementId, WriteMutations},
     prelude::Template,
-    signals::{Readable, Signal, Writable},
+    signals::{Signal, Writable},
 };
 
-use crate::{
-    adapter::{AttributeValueHelpers, SptsDioxusTemplateNode},
-    hooks::use_entity::EntitySignal,
-};
+use crate::{adapter::SptsDioxusTemplateNode, hooks::use_entity::EntitySignal};
 
 pub struct MutationApplier<'a, TT: SptsDioxusTemplateNode> {
     el_to_entity: &'a mut HashMap<ElementId, Entity>,
@@ -70,7 +67,7 @@ impl<'a, TT: SptsDioxusTemplateNode> MutationApplier<'a, TT> {
             self.el_to_entity.remove(&existing_element_id);
         }
 
-        DespawnRecursive { entity }.apply(self.world);
+        DespawnRecursive { warn: true, entity }.apply(self.world);
     }
 }
 
@@ -95,8 +92,8 @@ impl<'a, TT: SptsDioxusTemplateNode> WriteMutations for MutationApplier<'a, TT> 
         println!("WriteMutations::assign_node_id(path: {path:?}, id: {id:?})");
         let mut entity = *self.stack.last().unwrap();
         for index in path {
-            let v = self.world.inspect_entity(entity);
-            println!("\t entity {entity:?} {v:?}");
+            // let v = self.world.inspect_entity(entity);
+            // println!("\t entity {entity:?} {v:?}");
             let entity_ref = self.world.entity(entity);
             let children = entity_ref.get::<Children>().unwrap();
             entity = children[*index as usize];
@@ -244,11 +241,11 @@ impl<'a, TT: SptsDioxusTemplateNode> WriteMutations for MutationApplier<'a, TT> 
         }
     }
 
-    fn set_node_text(&mut self, value: &str, id: ElementId) {
+    fn set_node_text(&mut self, _value: &str, _id: ElementId) {
         todo!("set_node_text");
     }
 
-    fn create_event_listener(&mut self, name: &'static str, id: ElementId) {
+    fn create_event_listener(&mut self, _name: &'static str, _id: ElementId) {
         todo!("create_event_listener");
         // insert_event_listener(
         //     &name,
@@ -257,7 +254,7 @@ impl<'a, TT: SptsDioxusTemplateNode> WriteMutations for MutationApplier<'a, TT> 
         // );
     }
 
-    fn remove_event_listener(&mut self, name: &'static str, id: ElementId) {
+    fn remove_event_listener(&mut self, _name: &'static str, _id: ElementId) {
         todo!("remove_event_listener");
         // remove_event_listener(
         //     &name,

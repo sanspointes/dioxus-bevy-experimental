@@ -142,7 +142,7 @@ fn implement_spawn(model: &Model) -> TokenStream {
                     use bevy_spts_dioxus::SptsDioxusElement;
                     let mut entity_mut = dioxus_elements::#element_ident::spawn(world);
                     #insert_components
-                    entity_mut.push_children(&children);
+                    entity_mut.add_children(&children);
                     let entity = entity_mut.id();
                     // Apply static attributes
                     for attr in attributes {
@@ -163,7 +163,8 @@ fn implement_spawn(model: &Model) -> TokenStream {
                 Self::Dynamic { id } => {
                     world.spawn((
                         Name::from("Dynamic"),
-                        SpatialBundle::default(),
+                        Transform::default(),
+                        Visibility::default(),
                     )).id()
                 }
             }

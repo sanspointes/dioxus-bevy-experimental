@@ -6,15 +6,15 @@ edition = "2021"
 [lib]
 
 [dependencies]
-bevy_app = "0.14"
-bevy_derive = "0.14.2"
-bevy_ecs = "0.14"
-bevy_hierarchy = "0.14.2"
-bevy_utils = "0.14"
+bevy_app = "0.15"
+bevy_derive = "0.15"
+bevy_ecs = "0.15"
+bevy_hierarchy = "0.15"
+bevy_utils = "0.15"
 dioxus = { version = "0.5.6", default-features = false, features = ["macro", "signals", "hooks"] }
 dioxus-rsx = { default-features = false, version = "0.5.6", features = ["hot_reload"] }
 
 [dev-dependencies]
-bevy = "0.14.2"
-bevy-inspector-egui = "0.27.0"
+bevy = "0.15"
+bevy-inspector-egui = "0.28.0"
 dioxus-rsx = "0.5.6"

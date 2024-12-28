@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-bevy = "0.14.2"
-bevy-inspector-egui = "0.27.0"
+bevy = "0.15"
+bevy-inspector-egui = "0.28.0"
 bevy-spts-dioxus = { version = "0.1.0", path = "../../bevy-spts-dioxus" }
 dioxus-rsx = "0.5.6"

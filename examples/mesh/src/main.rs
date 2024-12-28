@@ -57,9 +57,9 @@ mod my_adapter {
         let mut entity_mut = world.entity_mut(entity);
         if let Some(mesh_handle) = value.as_concrete::<Handle<Mesh>>() {
             println!("Setting mesh to {mesh_handle:?}");
-            entity_mut.insert(mesh_handle.clone());
+            entity_mut.insert(Mesh3d(mesh_handle.clone()));
         } else {
-            entity_mut.remove::<Handle<Mesh>>();
+            entity_mut.remove::<Mesh3d>();
         }
     }
 
@@ -68,7 +68,7 @@ mod my_adapter {
         world.resource_scope::<Assets<StandardMaterial>, ()>(|world, mut color_materials| {
             if let Some(handle) = world
                 .entity_mut(entity)
-                .get::<Handle<StandardMaterial>>()
+                .get::<MeshMaterial3d<StandardMaterial>>()
                 .cloned()
             {
                 color_materials.remove(&handle);
@@ -78,7 +78,7 @@ mod my_adapter {
                 panic!("bevy_spts_dioxus: 'color' attribute error unwrapping 'Color'.  Found {value:?}.")
             });
             let handle = color_materials.add(value);
-            world.entity_mut(entity).insert(handle);
+            world.entity_mut(entity).insert(MeshMaterial3d(handle));
         });
     }
 
@@ -239,7 +239,7 @@ pub fn root() -> Element {
 }
 
 pub fn setup(mut commands: Commands) {
-    commands.spawn((SpatialBundle::default(), SptsDioxusRootComponent(root)));
+    commands.spawn((Transform::default(), Visibility::default(), SptsDioxusRootComponent(root)));
 }
 
 pub fn update(button_state: Res<ButtonInput<KeyCode>>, mut state: ResMut<State>) {

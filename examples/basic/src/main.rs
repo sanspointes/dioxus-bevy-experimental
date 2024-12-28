@@ -85,7 +85,8 @@ pub fn root_component() -> Element {
 
 pub fn spawn_root(mut commands: Commands) {
     commands.spawn((
-        SpatialBundle::default(),
+        Transform::default(),
+        Visibility::default(),
         SptsDioxusRootComponent(root_component),
     ));
 }
